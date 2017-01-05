@@ -27,7 +27,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', index);
-app.use('/customer', customer);
+app.use('/lantu/customer', customer);
 
 // mongo start
 

@@ -6,7 +6,7 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
 var index = require('./routes/index');
-var users = require('./routes/users');
+var customer = require('./routes/customer');
 
 var hbs = require('hbs');
 
@@ -27,48 +27,18 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', index);
-app.use('/users', users);
+app.use('/customer', customer);
 
 // mongo start
 
 var mongoose = require("mongoose");
 
-mongoose.connect("mongodb://lantu:lantu123@127.0.0.1:27017/lantu");
+mongoose.connect("mongodb://lantu:lantu123@www.mofeitech.com:27017/lantu");
 
 mongoose.connection.on("error", function (error){
     console.log("连接数据库失败"+error);
 }).on("open", function (){
     console.log("数据库连接成功！！！");
-});
-
-var appoint_info_schema = new mongoose.Schema({
-  episode : Date,
-  court : String,
-  valid : Number
-});
-
-var appoint_schema = new mongoose.Schema({
-    customerId : Number,
-    customerName : String,
-    createTime : Date,
-    updateTime : Date,
-    appointInfo : [appoint_info_schema],
-    valid : Number,
-    isPay : Number
-},{collection: "appoint"});
-
-var appoint_model = mongoose.model("appoint", appoint_schema);
-
-// var testEntity = new tmodel({    name: "testUser"});
-// testEntity.save(function (error, doc){    if(error){        console.log("error: "+error);    }else{        console.log(doc);    }});
-
-appoint_model.find({}, function (error, docs){
-    if(error){
-        console.log("error: "+error);
-    }else{
-        console.log(docs);
-        // console.log(docs[0].appointInfo);
-    }
 });
 
 // mongo end

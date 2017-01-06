@@ -4,7 +4,7 @@ var router = express.Router();
 var mongoose = require("mongoose");
 var _ = require('underscore');
 
-var episodeList = [8, 10, 12, 14, 16, 18, 20];
+var episodeList = [10, 12, 14, 16, 18, 20];
 var courtList = [1, 2, 3, 4];
 
 var appoint_info_schema = new mongoose.Schema({

@@ -74,4 +74,18 @@ router.get('/appointList.json', function(req, res, next) {
 	});
 });
 
+router.post('/doAppoint.json', function(req, res, next) {
+  var insertAppoint = {customerId:1, customerName:'syusuk', valid:1, isPay:0};
+  insertAppoint.appointDate = req.body.appointDate;
+  insertAppoint.appointInfo = JSON.parse(req.body.appointInfo);
+  console.log(insertAppoint)
+  new appoint_model(insertAppoint).save(function(err) {
+    if (err) {
+      res.send('fail');
+    } else {
+      res.send('success');
+    }
+  })
+})
+
 module.exports = router;

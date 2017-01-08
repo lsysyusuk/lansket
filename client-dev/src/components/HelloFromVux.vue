@@ -91,7 +91,7 @@ export default {
             }
           })
       });
-      this.$http.post('http://127.0.0.1/lantu/customer/doAppoint.json',{appointDate:this.current_date, appointInfo: JSON.stringify(appointInfo)}).then(function (res) {
+      this.$http.post('/lantu/customer/doAppoint.json',{appointDate:this.current_date, appointInfo: JSON.stringify(appointInfo)}).then(function (res) {
       console.log(res.data);
       });
     },
@@ -109,7 +109,7 @@ export default {
       // })
       this.current_date = date;
       var that = this;
-      that.$http.get('http://127.0.0.1/lantu/customer/appointList.json?date=' + that.current_date, {'date': '2017-01-05'}).then(function (res) {
+      that.$http.get('/lantu/customer/appointList.json?date=' + that.current_date, {'date': '2017-01-05'}).then(function (res) {
         that.episode_court_map = res.data.episode_court_map;
         that.appointJson = res.data.appointJson;
       });

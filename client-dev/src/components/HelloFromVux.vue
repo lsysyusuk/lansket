@@ -64,7 +64,7 @@ export default {
   ready (){
     console.log("ready start");
     var that = this;
-    that.$http.get('http://127.0.0.1/lantu/customer/appointList.json?date=' + that.current_date,{'date': '2017-01-05'}).then(function (res) {
+    that.$http.get('/lantu/customer/appointList.json?date=' + that.current_date,{'date': '2017-01-05'}).then(function (res) {
       that.episode_court_map = res.data.episode_court_map;
       that.appointJson = res.data.appointJson;
     });

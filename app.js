@@ -24,7 +24,7 @@ app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'dist')));
 
 app.use('/', index);
 app.use('/lantu/customer', customer);
@@ -33,7 +33,7 @@ app.use('/lantu/customer', customer);
 
 var mongoose = require("mongoose");
 
-mongoose.connect("mongodb://lantu:lantu123@127.0.0.1:27017/lantu");
+mongoose.connect("mongodb://test:test123@www.mofeitech.com:27017/lantu");
 
 mongoose.connection.on("error", function (error){
     console.log("连接数据库失败"+error);

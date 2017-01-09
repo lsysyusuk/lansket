@@ -71,7 +71,7 @@ export default {
       weekList: weekList,
       current_date: weekList[2].date,
       show: false,
-      server: "http://127.0.0.1",
+      server: "",
       appointText:[],
       appointInfo:[],
       toast:{show:false, type:"success", text:""},

@@ -1,11 +1,13 @@
 <template>
   <div class="appoint">
-    <x-header :left-options="{showBack: false}" ></x-header>
+    <x-header :left-options="{showBack: false}" >篮&nbsp;&nbsp;途</x-header>
   <scroller v-ref:scroller v-ref:scroller lock-y :scrollbar-x="false">
-    <div id="scroll-content" v-el:scrollcontent :style="calculateWidth(weekList)" >
+    <div id="scroll-content" v-el:scrollcontent :style="calculateWidth(weekList)">
+      <div class="scroll-item last" @click="more_week('last')"></div>
       <div class="scroll-item" v-for="item in weekList" :class="[current_date == item.date ? 'active' : '']" @click="changeDay(item.date)" >
         {{item.name}}<br><span>{{treatDate(item.date)}}</span>
-    </div>
+      </div>
+      <div class="scroll-item next" @click="more_week('next')"></div>
   </div>
 </scroller>
   <cell v-for="courtList in episode_court_map" :title="treatEpisode(courtList.episode)" :is-link="false" >
@@ -21,11 +23,19 @@
   </group> -->
   <x-button type='primary' style="position: fixed; bottom: 0; background-color:#f27330" @click='doAppoint'>我要预定</x-button>
   </div>
-  
+  <div>
+    <confirm :show.sync="show" :cancel-text="'取消'" :confirm-text="'确认'" :title="'预约确认'" @on-confirm="doAppointConfirm" >
+      <div v-for='episode in appointText' style="text-align: center">
+        {{treatEpisode(episode.episode)}}
+        <span v-for='court in episode.courtList' style="padding-left: 0.3rem"><font color="red">{{court}}</font>号场</span>
+      </div>
+    </confirm>
+  </div>
+  <toast :show.sync="toast.show" :text="toast.text" :type="toast.type"></toast>
 </template>
 
 <script>
-import {XHeader, Group, Cell, ButtonTab, ButtonTabItem, XButton, Scroller} from 'vux/src/components';
+import {XHeader, Group, Cell, ButtonTab, ButtonTabItem, XButton, Confirm, Scroller, Toast} from 'vux/src/components';
 import { _ } from 'underscore/underscore-min';
 // import Scroller from './Scroller'
 export default {
@@ -36,7 +46,9 @@ export default {
     ButtonTab,
     ButtonTabItem,
     XButton,
-    Scroller
+    Confirm,
+    Scroller,
+    Toast
   },
   data: function (){
     console.log("data start");
@@ -45,7 +57,7 @@ export default {
       if (weekList.length == 0) {
         weekList.push(this.next_day())
       } else {
-        weekList.push(this.next_day(weekList[weekList.length - 1].date))
+        weekList.push(this.next_day(weekList[weekList.length - 1].date, 'next'))
       }
     }
     
@@ -58,13 +70,18 @@ export default {
       episode_court_map: [],
       weekList: weekList,
       current_date: weekList[2].date,
+      show: false,
+      server: "http://127.0.0.1",
+      appointText:[],
+      appointInfo:[],
+      toast:{show:false, type:"success", text:""},
     }
     
   },
   ready (){
     console.log("ready start");
     var that = this;
-    that.$http.get('/lantu/customer/appointList.json?date=' + that.current_date,{'date': '2017-01-05'}).then(function (res) {
+    that.$http.get(this.server + '/lantu/customer/appointList.json?date=' + that.current_date,{'date': '2017-01-05'}).then(function (res) {
       that.episode_court_map = res.data.episode_court_map;
       that.appointJson = res.data.appointJson;
     });
@@ -84,19 +101,39 @@ export default {
     },
     doAppoint: function () {
       var appointInfo = [];
+      var appointText = [];
       _.each(this.episode_court_map, function (_episode) {
-          _.each(_episode.courtList, function (court) {
-            if (court.status == 1) {
-              appointInfo.push({'episode': _episode.episode, 'court': court.court, 'status': 1})
-            }
-          })
+        var _a = [];
+        _.each(_episode.courtList, function (court) {
+          if (court.status == 1) {
+            appointInfo.push({'episode': _episode.episode, 'court': court.court, 'status': 1})
+            _a.push(court.court);
+          }
+        })
+        if (_a.length > 0) {
+            appointText.push({'episode': _episode.episode, 'courtList': _a})
+        }
       });
-      this.$http.post('/lantu/customer/doAppoint.json',{appointDate:this.current_date, appointInfo: JSON.stringify(appointInfo)}).then(function (res) {
-      console.log(res.data);
+      this.appointText = appointText;
+      this.appointInfo = appointInfo;
+      if (appointInfo.length > 0) {
+        this.show = true;
+      } else {
+        this.toast.text = "请选择场地~";
+        this.toast.type = "warn";
+        this.toast.show = true;
+      }
+      
+    },
+    doAppointConfirm: function () {
+      this.$http.post(this.server + '/lantu/customer/doAppoint.json',{appointDate:this.current_date, appointInfo: JSON.stringify(this.appointInfo)}).then(function (res) {
+        this.toast.text = "预约成功";
+        this.toast.type = "success";
+        this.toast.show = true;
       });
     },
     calculateWidth: function (weekList) {
-      return "width:" + weekList.length * 4.6 + "rem";
+      return "width:" + ((weekList.length) * 4.6 + 4.6) + "rem";
     },
     changeDay: function (date) {
       // this.weekList.push(this.next_day(date));
@@ -109,7 +146,7 @@ export default {
       // })
       this.current_date = date;
       var that = this;
-      that.$http.get('/lantu/customer/appointList.json?date=' + that.current_date, {'date': '2017-01-05'}).then(function (res) {
+      that.$http.get(this.server + '/lantu/customer/appointList.json?date=' + that.current_date, {'date': '2017-01-05'}).then(function (res) {
         that.episode_court_map = res.data.episode_court_map;
         that.appointJson = res.data.appointJson;
       });
@@ -117,11 +154,15 @@ export default {
     treatDate: function (date) {
       return date.substring(5);
     },
-    next_day: function (d) {
+    next_day: function (d, ctrl) {
         var week_map = ['周日', '周一','周二','周三','周四','周五','周六'];
         if (d) {
           d = new Date(d);
-          d = +d + 1000*60*60*24;
+          if (ctrl == "last") {
+            d = +d - 1000*60*60*24;
+          } else {
+            d = +d + 1000*60*60*24;
+          }
           d = new Date(d);
         } else {
           d = new Date();
@@ -138,6 +179,37 @@ export default {
         }
         var s = d.getFullYear()+"-"+month+"-"+day;
         return {'name': week_map[d.getDay()], 'date': s};
+    },
+    more_week: function (ctrl) {
+      var count = 7;
+      var i = 0;
+      var d;
+      while (i < count) {
+        if (ctrl == 'last') {
+          d = new Date(this.weekList[0].date);
+        } else {
+          d = new Date(this.weekList[this.weekList.length-1].date);
+        }
+        if (ctrl == 'last') {
+          this.weekList.unshift(this.next_day(d, ctrl));
+        } else {
+          this.weekList.push(this.next_day(d, ctrl));
+        }
+        var width = this.$els.scrollcontent.style.width;
+        i++;
+      }
+      width = width.substring(0, width.length-3);
+      width = (parseInt(width) + 4.6 * count) + "rem";
+      this.$els.scrollcontent.style.width = width;
+      if (ctrl == 'next') {
+        var _sw = document.getElementById("scroll-content").scrollWidth;
+        var _cw =  document.body.clientWidth
+        var pos = {left: _sw - _cw
+};
+      }
+      this.$nextTick(() => {
+        this.$refs.scroller.reset(pos)
+      })
     }
     
   }
@@ -257,11 +329,25 @@ export default {
   display: inline-block;
   width: 4.4rem;
   text-align: center;
-  box-shadow: 0 0.1rem 0.2rem #f27330;
+  box-shadow: 0 0.2rem 0.2rem #f27330;
   margin: 0 0.1rem 0.2rem;
 }
 .scroll-item.active {
   background-color: #f27330;
+}
+.scroll-item.last {
+  width: 2rem;
+  height: 2rem;
+  margin: 0;
+  background: url(../assets/last-week.png) no-repeat center!important;
+  background-size:100% 100% !important;
+}
+.scroll-item.next {
+  width: 2rem;
+  height: 2rem;
+  margin: 0;
+  background: url(../assets/next-week.png) no-repeat center!important;
+  background-size:100% 100% !important;
 }
 .appoint {
   position: absolute;

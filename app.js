@@ -26,7 +26,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'dist')));
 
-app.use('/', index);
+app.use('/lantu', index);
 app.use('/lantu/customer', customer);
 
 // mongo start

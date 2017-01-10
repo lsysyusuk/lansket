@@ -33,7 +33,7 @@ app.use('/lantu/customer', customer);
 
 var mongoose = require("mongoose");
 
-mongoose.connect("mongodb://test:test123@www.mofeitech.com:2000/lantu");
+mongoose.connect("mongodb://test:test123@www.mofeitech.com:20000/lantu");
 
 mongoose.connection.on("error", function (error){
     console.log("连接数据库失败"+error);

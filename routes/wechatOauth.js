@@ -7,9 +7,8 @@ var _ = require('underscore');
 var config = require('../config');
 var iconv = require('iconv-lite');
 
-
 var user_schema = new mongoose.Schema({
-    id: String,
+    id: mongoose.Schema.Types.ObjectId,
     customerId : Number,
     nickname : String,
     realname : String,
@@ -57,6 +56,7 @@ router.get('/login', function(req, res, next) {
           console.log("error: " + error);
         }else{
           if (docs.length > 0) {
+            console.log("userLogin----" + JSON.stringify(docs[0]));
             req.session.user = docs[0];
             res.redirect(req.session.redirectUrl)
           } else {
@@ -114,7 +114,7 @@ router.get('/register', function(req, res, next) {
               if (isNaN(jsonUser.sex)) {
                 insertUser.gender = parseInt(jsonUser.sex);
               }
-              console.log(insertUser)
+              console.log("userRegitser----" + JSON.stringify(insertUser))
               new user_model(insertUser).save(function(err) {
                 if (err) {
                   console.warn(err);

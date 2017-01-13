@@ -13,9 +13,29 @@ var appoint_info_schema = new mongoose.Schema({
   status : Number
 });
 
-var appoint_schema = new mongoose.Schema({
+var user_schema = new mongoose.Schema({
+    id: mongoose.Schema.Types.ObjectId,
     customerId : Number,
-    customerName : String,
+    nickname : String,
+    realname : String,
+    phone : Number,
+    avatarUrl : String,
+    birthday : String,
+    gender : Number,
+    country : String,
+    province : String,
+    city : String,
+    wechatOpenid : String,
+    wechatUnionid : String,
+    createTime : Date,
+    updateTime : Date,
+    lastLogin : Date,
+    valid : Number,
+},{collection: "user"});
+
+var appoint_schema = new mongoose.Schema({
+    id:mongoose.Schema.Types.ObjectId,
+    customer : user_schema,
     createTime : Date,
     updateTime : Date,
     appointDate: String,
@@ -75,7 +95,9 @@ router.get('/appointList.json', function(req, res, next) {
 });
 
 router.post('/doAppoint.json', function(req, res, next) {
-  var insertAppoint = {customerId:1, customerName:'syusuk', valid:1, isPay:0};
+  var user = req.session.user;
+  var date = new Date();
+  var insertAppoint = {customer:user, createTime:date, updateTime:date, valid:1, isPay:0};
   insertAppoint.appointDate = req.body.appointDate;
   insertAppoint.appointInfo = JSON.parse(req.body.appointInfo);
   console.log(insertAppoint)

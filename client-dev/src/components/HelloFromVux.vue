@@ -21,7 +21,7 @@
     
     
   </group> -->
-  <x-button type='primary' style="position: fixed; bottom: 0; background-color:#f27330" @click='doAppoint'>我要预定</x-button>
+  <x-button type='primary' style="position: fixed; bottom: 0; background-color:#f27330; opacity: 0.9;" @click='doAppoint'>我要预定</x-button>
   </div>
   <div>
     <confirm :show.sync="show" :cancel-text="'取消'" :confirm-text="'确认'" :title="'预约确认'" @on-confirm="doAppointConfirm" >
@@ -71,7 +71,8 @@ export default {
       weekList: weekList,
       current_date: weekList[2].date,
       show: false,
-      server: "",
+      // server: "",
+      server: "http://127.0.0.1",
       appointText:[],
       appointInfo:[],
       toast:{show:false, type:"success", text:""},
@@ -133,7 +134,7 @@ export default {
       });
     },
     calculateWidth: function (weekList) {
-      return "width:" + ((weekList.length) * 4.6 + 4.6) + "rem";
+      return "width:" + ((weekList.length) * 4.6 + 4.6 + 0.1) + "rem";
     },
     changeDay: function (date) {
       // this.weekList.push(this.next_day(date));

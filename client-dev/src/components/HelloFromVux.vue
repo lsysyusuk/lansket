@@ -21,7 +21,7 @@
     
     
   </group> -->
-  <x-button type='primary' style="position: fixed; bottom: 0; background-color:#f27330; opacity: 0.9;" @click='doAppoint'>我要预定</x-button>
+  <x-button type='primary' style="position: fixed; bottom: 0; background-color:#f27330; opacity: 0.9; border-radius: 0;" @click='doAppoint'>我要预定</x-button>
   </div>
   <div>
     <confirm :show.sync="show" :cancel-text="'取消'" :confirm-text="'确认'" :title="'预约确认'" @on-confirm="doAppointConfirm" >
@@ -71,8 +71,8 @@ export default {
       weekList: weekList,
       current_date: weekList[2].date,
       show: false,
-      // server: "",
-      server: "http://127.0.0.1",
+      server: "",
+      // server: "http://127.0.0.1",
       appointText:[],
       appointInfo:[],
       toast:{show:false, type:"success", text:""},

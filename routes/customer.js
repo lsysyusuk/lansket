@@ -67,7 +67,7 @@ router.get('/appointList.json', function(req, res, next) {
           return s;
         })};
       })
-      console.log(episode_court_map);
+      // console.log(episode_court_map);
 
   		res.send({"episode_court_map": episode_court_map, "appointJson": docs});
   	}

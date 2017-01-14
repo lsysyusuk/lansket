@@ -55,7 +55,7 @@ app.use(function (req, res, next) {
     console.log("intercepter1");
     var url = req.originalUrl;//获取url
     req.session.redirectUrl = url;
-    if(!req.session.user){
+    if(!req.session.user && false){
       var redUrl = "http://"+ config.domain +"/lantu/oauth/login";
       redUrl = encodeURI(redUrl);
       return res.redirect("https://open.weixin.qq.com/connect/oauth2/authorize?appid="+ config.wechat.appid +"&redirect_uri=" + redUrl + "&response_type=code&scope=snsapi_base&state=" + req.session.id);

@@ -32,10 +32,11 @@
     </confirm>
   </div>
   <toast :show.sync="toast.show" :text="toast.text" :type="toast.type"></toast>
+  <loading :show.sync="loading" :text="'加载中'"></loading>
 </template>
 
 <script>
-import {XHeader, Group, Cell, ButtonTab, ButtonTabItem, XButton, Confirm, Scroller, Toast} from 'vux/src/components';
+import {XHeader, Group, Cell, ButtonTab, ButtonTabItem, XButton, Confirm, Scroller, Toast, Loading} from 'vux/src/components';
 import { _ } from 'underscore/underscore-min';
 // import Scroller from './Scroller'
 export default {
@@ -48,7 +49,8 @@ export default {
     XButton,
     Confirm,
     Scroller,
-    Toast
+    Toast,
+    Loading
   },
   data: function (){
     console.log("data start");
@@ -67,24 +69,40 @@ export default {
       // preserves its current state and we are modifying
       // its initial state.
       appointJson: [],
+      appointList4week: {},
       episode_court_map: [],
+      episode_court_map_default: JSON.parse('[{"episode":10,"courtList":[{"court":1,"status":0},{"court":2,"status":0},{"court":3,"status":0},{"court":4,"status":0}]},{"episode":12,"courtList":[{"court":1,"status":0},{"court":2,"status":0},{"court":3,"status":0},{"court":4,"status":0}]},{"episode":14,"courtList":[{"court":1,"status":0},{"court":2,"status":0},{"court":3,"status":0},{"court":4,"status":0}]},{"episode":16,"courtList":[{"court":1,"status":0},{"court":2,"status":0},{"court":3,"status":0},{"court":4,"status":0}]},{"episode":18,"courtList":[{"court":1,"status":0},{"court":2,"status":0},{"court":3,"status":0},{"court":4,"status":0}]},{"episode":20,"courtList":[{"court":1,"status":0},{"court":2,"status":0},{"court":3,"status":0},{"court":4,"status":0}]}]'),
+      episode_court_map_week: {},
       weekList: weekList,
       current_date: weekList[2].date,
       show: false,
-      server: "",
-      // server: "http://127.0.0.1",
+      // server: "",
+      server: "http://127.0.0.1",
       appointText:[],
       appointInfo:[],
       toast:{show:false, type:"success", text:""},
+      loading:false
     }
     
   },
   ready (){
     console.log("ready start");
     var that = this;
-    that.$http.get(this.server + '/lantu/customer/appointList.json?date=' + that.current_date,{'date': '2017-01-05'}).then(function (res) {
-      that.episode_court_map = res.data.episode_court_map;
-      that.appointJson = res.data.appointJson;
+    that.loading = true;
+    // that.$http.get(this.server + '/lantu/customer/appointList.json?date=' + that.weekList[0].date).then(function (res) {
+    //   that.episode_court_map = res.data.episode_court_map;
+    //   that.appointJson = res.data.appointJson;
+    //   that.loading = false;
+    // });
+    that.$http.get(this.server + '/lantu/customer/appointList4week.json?start=' + that.weekList[0].date + '&end=' +  that.weekList[6].date).then(function (res) {
+      that.episode_court_map_week = res.data.episode_court_map_week;
+      that.appointList4week = res.data.appointList4week;
+      that.episode_court_map = res.data.episode_court_map_week[that.weekList[2].date];
+      if (!that.episode_court_map) {
+        that.episode_court_map = that.episode_court_map_default;
+      }
+      that.appointJson = res.data.appointList4week[that.weekList[2].date];
+      that.loading = false;
     });
   },
   methods: {
@@ -127,10 +145,13 @@ export default {
       
     },
     doAppointConfirm: function () {
+      var that = this;
+      that.loading = true;
       this.$http.post(this.server + '/lantu/customer/doAppoint.json',{appointDate:this.current_date, appointInfo: JSON.stringify(this.appointInfo)}).then(function (res) {
         this.toast.text = "预约成功";
         this.toast.type = "success";
         this.toast.show = true;
+        that.loading = false;
       });
     },
     calculateWidth: function (weekList) {
@@ -146,11 +167,18 @@ export default {
       //   this.$refs.scroller.reset()
       // })
       this.current_date = date;
-      var that = this;
-      that.$http.get(this.server + '/lantu/customer/appointList.json?date=' + that.current_date, {'date': '2017-01-05'}).then(function (res) {
-        that.episode_court_map = res.data.episode_court_map;
-        that.appointJson = res.data.appointJson;
-      });
+      this.episode_court_map = this.episode_court_map_week[date];
+      this.appointJson = this.appointList4week[date];
+      if (!this.episode_court_map) {
+        this.episode_court_map = this.episode_court_map_default;
+      }
+      // var that = this;
+      // that.loading = true;
+      // that.$http.get(this.server + '/lantu/customer/appointList.json?date=' + that.current_date, {'date': '2017-01-05'}).then(function (res) {
+      //   that.episode_court_map = res.data.episode_court_map;
+      //   that.appointJson = res.data.appointJson;
+      //   that.loading = false;
+      // });
     },
     treatDate: function (date) {
       return date.substring(5);
@@ -205,12 +233,28 @@ export default {
       if (ctrl == 'next') {
         var _sw = document.getElementById("scroll-content").scrollWidth;
         var _cw =  document.body.clientWidth
-        var pos = {left: _sw - _cw
-};
+        var pos = {left: _sw - _cw};
       }
       this.$nextTick(() => {
         this.$refs.scroller.reset(pos)
-      })
+      });
+
+      var that = this;
+      var _start,_end;
+      if (ctrl == 'last') {
+        _start = that.weekList[0].date;
+        _end = that.weekList[6].date;
+      } else if (ctrl == 'next') {
+        _start = that.weekList[that.weekList.length - 7].date;
+        _end = that.weekList[that.weekList.length - 1].date;
+      }
+
+      that.loading = true;
+      that.$http.get(this.server + '/lantu/customer/appointList4week.json?start=' + _start + '&end=' +  _end).then(function (res) {
+        that.episode_court_map_week = _.extend(that.episode_court_map_week,res.data.episode_court_map_week);
+        that.appointList4week = _.extend(that.appointList4week,res.data.appointList4week);
+        that.loading = false;
+      });
     }
     
   }

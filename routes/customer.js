@@ -46,22 +46,32 @@ var appoint_schema = new mongoose.Schema({
 
 var appoint_model = mongoose.model("appoint", appoint_schema);
 
-// var testEntity = new tmodel({    name: "testUser"});
-// testEntity.save(function (error, doc){    if(error){        console.log("error: "+error);    }else{        console.log(doc);    }});
-
-var findDisable = function (episode, court, appointJson) {
+var findDisable = function (episode, court, appointJson, userId) {
    var _court = court;
     var _episode = episode;
+    var _self = false;
     var map = _.some(appointJson, function (e) {
       return _.some(e.appointInfo, function (ee) {
         if (ee.status == 1 && ee.episode == _episode && ee.court == _court) {
+          if (e.customer && e.customer._id.toString() == userId.toString()) {
+            _self = true;
+          }
+          
           return true;
         } else {
-          return false;
+          return 0;
         }
       });	
     })
-    return map;
+    if (map) {
+      if(_self) {
+        return 1;
+      } else {
+        return 2;
+      }
+    } else {
+      return 0;
+    }
 }
 
 
@@ -75,19 +85,15 @@ router.get('/appointList.json', function(req, res, next) {
   	if(error){
      		console.log("error: " + error);
   	}else{
-  		console.log(docs);
-
       var episode_court_map = _.map(episodeList, function (_episode) {
         return {"episode" : _episode, "courtList" : _.map(courtList, function (_court) {
           var s = {"court" : _court, "status": 0};
-          if (findDisable(_episode, _court, docs)) {
+          if (findDisable(_episode, _court, docs) == 2) {
             s.status = 2;
-            console.log("----");
           }
           return s;
         })};
       })
-      // console.log(episode_court_map);
 
   		res.send({"episode_court_map": episode_court_map, "appointJson": docs});
   	}
@@ -95,6 +101,7 @@ router.get('/appointList.json', function(req, res, next) {
 });
 
 router.get('/appointList4week.json', function(req, res, next) {
+  var user = req.session.user;
   var start = req.query.start;
   var end = req.query.end;
   var q = {appointDate:{$lte: end, $gte:start}};
@@ -102,7 +109,6 @@ router.get('/appointList4week.json', function(req, res, next) {
     if(error){
         console.log("error: " + error);
     }else{
-      console.log(docs);
       var episode_court_map_week = {};
       var appointList4week = {};
       _.each(docs, function(e) {
@@ -116,30 +122,14 @@ router.get('/appointList4week.json', function(req, res, next) {
         var episode_court_map = _.map(episodeList, function (_episode) {
           return {"episode" : _episode, "courtList" : _.map(courtList, function (_court) {
             var s = {"court" : _court, "status": 0};
-            if (findDisable(_episode, _court, v)) {
-              s.status = 2;
-              console.log("----");
-            }
+            s.status = findDisable(_episode, _court, v, user._id);
             return s;
           })};
         })
         episode_court_map_week[k] = episode_court_map;
       });
 
-      // var episode_court_map = _.map(episodeList, function (_episode) {
-      //   return {"episode" : _episode, "courtList" : _.map(courtList, function (_court) {
-      //     var s = {"court" : _court, "status": 0};
-      //     if (findDisable(_episode, _court, docs)) {
-      //       s.status = 2;
-      //       console.log("----");
-      //     }
-      //     return s;
-      //   })};
-      // })
-      // console.log(episode_court_map);
-
       res.send({"episode_court_map_week": episode_court_map_week, "appointList4week": appointList4week});
-      // res.send(result);
     }
   });
 });
@@ -147,17 +137,40 @@ router.get('/appointList4week.json', function(req, res, next) {
 router.post('/doAppoint.json', function(req, res, next) {
   var user = req.session.user;
   var date = new Date();
+  var appointDate = req.body.appointDate;
   var insertAppoint = {customer:user, createTime:date, updateTime:date, valid:1, isPay:0};
   insertAppoint.appointDate = req.body.appointDate;
   insertAppoint.appointInfo = JSON.parse(req.body.appointInfo);
-  console.log(insertAppoint)
-  new appoint_model(insertAppoint).save(function(err) {
-    if (err) {
-      res.send('fail');
-    } else {
-      res.send('success');
+  var q = {"customer._id":user._id,"appointDate":appointDate}
+
+
+  appoint_model.find(q, function (error, docs){
+    if(error){
+      console.log("error: " + error);
+    }else{
+      if (docs.length > 0) {
+        var updateAppoint = docs[0];
+        updateAppoint.appointInfo = insertAppoint.appointInfo;
+        updateAppoint.save(function(err) {
+          if (err) {
+            res.send('fail');
+          } else {
+            res.send('success');
+          }
+        })
+      } else {
+        new appoint_model(insertAppoint).save(function(err) {
+          if (err) {
+            res.send('fail');
+          } else {
+            res.send('success');
+          }
+        })
+      }
     }
-  })
+  });
+
+  
 })
 
 module.exports = router;

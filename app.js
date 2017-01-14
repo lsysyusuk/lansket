@@ -11,9 +11,9 @@ var index = require('./routes/index');
 var customer = require('./routes/customer');
 var oauth = require('./routes/wechatOauth');
 var config = require('./config');
-console.log(config.db.host);
 
 var hbs = require('hbs');
+var mongoose = require("mongoose");
 
 
 var app = express();
@@ -55,7 +55,18 @@ app.use(function (req, res, next) {
     console.log("intercepter1");
     var url = req.originalUrl;//获取url
     req.session.redirectUrl = url;
-    if(!req.session.user && false){
+
+    // req.session.user = {valid: 1,
+    //   wechatOpenid: 'okIULwm_4RyQd779dYI4cCYFzwbU',
+    //   nickname: 'syusuk',
+    //   country: '中国',
+    //   province: '北京',
+    //   city: '丰台',
+    //   avatarUrl: 'http://wx.qlogo.cn/mmopen/xPKCxELaaj6xJFcfBibjR6FksibCP33Ns7nyx4j8OXgnyRTHwC1xWtL8dRy5dcMbmWRlfj7tpwGMB3jxTgsujLVRIBC01h49ibia/0',
+    //   _id: mongoose.Types.ObjectId('58788d8774957b14a31bb0dd')
+    // };
+
+    if(!req.session.user){
       var redUrl = "http://"+ config.domain +"/lantu/oauth/login";
       redUrl = encodeURI(redUrl);
       return res.redirect("https://open.weixin.qq.com/connect/oauth2/authorize?appid="+ config.wechat.appid +"&redirect_uri=" + redUrl + "&response_type=code&scope=snsapi_base&state=" + req.session.id);
@@ -71,8 +82,6 @@ app.use('/lantu/customer', customer);
 app.use('/lantu/oauth', oauth);
 
 // mongo start
-
-var mongoose = require("mongoose");
 
 mongoose.connect('mongodb://'+ config.db.username +':'+ config.db.password +'@'+ config.db.host +':'+ config.db.port +'/'+ config.db.database);
 

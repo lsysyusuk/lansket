@@ -76,8 +76,8 @@ export default {
       weekList: weekList,
       current_date: weekList[2].date,
       show: false,
-      // server: "",
-      server: "http://127.0.0.1",
+      server: "",
+      // server: "http://127.0.0.1",
       appointText:[],
       appointInfo:[],
       toast:{show:false, type:"success", text:""},
@@ -99,7 +99,7 @@ export default {
       that.appointList4week = res.data.appointList4week;
       that.episode_court_map = res.data.episode_court_map_week[that.weekList[2].date];
       if (!that.episode_court_map) {
-        that.episode_court_map = that.episode_court_map_default;
+        that.episode_court_map = JSON.parse('[{"episode":10,"courtList":[{"court":1,"status":0},{"court":2,"status":0},{"court":3,"status":0},{"court":4,"status":0}]},{"episode":12,"courtList":[{"court":1,"status":0},{"court":2,"status":0},{"court":3,"status":0},{"court":4,"status":0}]},{"episode":14,"courtList":[{"court":1,"status":0},{"court":2,"status":0},{"court":3,"status":0},{"court":4,"status":0}]},{"episode":16,"courtList":[{"court":1,"status":0},{"court":2,"status":0},{"court":3,"status":0},{"court":4,"status":0}]},{"episode":18,"courtList":[{"court":1,"status":0},{"court":2,"status":0},{"court":3,"status":0},{"court":4,"status":0}]},{"episode":20,"courtList":[{"court":1,"status":0},{"court":2,"status":0},{"court":3,"status":0},{"court":4,"status":0}]}]');
       }
       that.appointJson = res.data.appointList4week[that.weekList[2].date];
       that.loading = false;
@@ -148,9 +148,11 @@ export default {
       var that = this;
       that.loading = true;
       this.$http.post(this.server + '/lantu/customer/doAppoint.json',{appointDate:this.current_date, appointInfo: JSON.stringify(this.appointInfo)}).then(function (res) {
-        this.toast.text = "预约成功";
-        this.toast.type = "success";
-        this.toast.show = true;
+        that.episode_court_map_week[that.current_date] = that.episode_court_map;
+
+        that.toast.text = "预约成功";
+        that.toast.type = "success";
+        that.toast.show = true;
         that.loading = false;
       });
     },
@@ -158,27 +160,12 @@ export default {
       return "width:" + ((weekList.length) * 4.6 + 4.6 + 0.1) + "rem";
     },
     changeDay: function (date) {
-      // this.weekList.push(this.next_day(date));
-      // var width = this.$els.scrollcontent.style.width;
-      // width = width.substring(0, width.length-5);
-      // width = (parseInt(width) + 4.6) + "rem";
-      // this.$els.scrollcontent.style.width = width
-      // this.$nextTick(() => {
-      //   this.$refs.scroller.reset()
-      // })
       this.current_date = date;
       this.episode_court_map = this.episode_court_map_week[date];
       this.appointJson = this.appointList4week[date];
       if (!this.episode_court_map) {
-        this.episode_court_map = this.episode_court_map_default;
+        this.episode_court_map = JSON.parse('[{"episode":10,"courtList":[{"court":1,"status":0},{"court":2,"status":0},{"court":3,"status":0},{"court":4,"status":0}]},{"episode":12,"courtList":[{"court":1,"status":0},{"court":2,"status":0},{"court":3,"status":0},{"court":4,"status":0}]},{"episode":14,"courtList":[{"court":1,"status":0},{"court":2,"status":0},{"court":3,"status":0},{"court":4,"status":0}]},{"episode":16,"courtList":[{"court":1,"status":0},{"court":2,"status":0},{"court":3,"status":0},{"court":4,"status":0}]},{"episode":18,"courtList":[{"court":1,"status":0},{"court":2,"status":0},{"court":3,"status":0},{"court":4,"status":0}]},{"episode":20,"courtList":[{"court":1,"status":0},{"court":2,"status":0},{"court":3,"status":0},{"court":4,"status":0}]}]');
       }
-      // var that = this;
-      // that.loading = true;
-      // that.$http.get(this.server + '/lantu/customer/appointList.json?date=' + that.current_date, {'date': '2017-01-05'}).then(function (res) {
-      //   that.episode_court_map = res.data.episode_court_map;
-      //   that.appointJson = res.data.appointJson;
-      //   that.loading = false;
-      // });
     },
     treatDate: function (date) {
       return date.substring(5);

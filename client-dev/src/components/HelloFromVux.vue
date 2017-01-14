@@ -360,6 +360,7 @@ export default {
   font-size: 16px;
   height: 100%;
   background: url(../assets/flour.png);
+  overflow: hidden
 }
 .description {
   margin: 0 0.3rem 0 2rem; 

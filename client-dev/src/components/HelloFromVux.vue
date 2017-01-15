@@ -84,8 +84,8 @@ export default {
       weekList: weekList,
       current_date: weekList[2].date,
       show: false,
-      // server: "",
-      server: "http://127.0.0.1",
+      server: "",
+      // server: "http://127.0.0.1",
       appointText:[],
       appointInfo:[],
       toast:{show:false, type:"success", text:""},
@@ -116,6 +116,7 @@ export default {
         that.episode_court_map = JSON.parse('[{"episode":10,"courtList":[{"court":1,"status":0},{"court":2,"status":0},{"court":3,"status":0},{"court":4,"status":0}]},{"episode":12,"courtList":[{"court":1,"status":0},{"court":2,"status":0},{"court":3,"status":0},{"court":4,"status":0}]},{"episode":14,"courtList":[{"court":1,"status":0},{"court":2,"status":0},{"court":3,"status":0},{"court":4,"status":0}]},{"episode":16,"courtList":[{"court":1,"status":0},{"court":2,"status":0},{"court":3,"status":0},{"court":4,"status":0}]},{"episode":18,"courtList":[{"court":1,"status":0},{"court":2,"status":0},{"court":3,"status":0},{"court":4,"status":0}]},{"episode":20,"courtList":[{"court":1,"status":0},{"court":2,"status":0},{"court":3,"status":0},{"court":4,"status":0}]}]');
       }
       that.appointJson = res.data.appointList4week[that.weekList[2].date];
+      that.isBindPhone = res.data.isBindPhone
       that.loading = false;
     });
   },
@@ -155,9 +156,7 @@ export default {
       if (appointInfo.length > 0) {
         this.show = true;
       } else {
-        this.toast.text = "请选择场地~";
-        this.toast.type = "warn";
-        this.toast.show = true;
+        this.doToast("请选择场地~", "warn");
       }
       
     },
@@ -261,28 +260,65 @@ export default {
       });
     },
     doSendCode: function (phone) {
-      console.log(phone);
       if (!isNaN(this.countTime)) {
         return;
       }
       var re_phone = /\d{11}/;
       if (!re_phone.test(phone)) {
-        this.toast.text = "您输入的手机号有误";
-        this.toast.type = "warn";
-        this.toast.show = true;
-        return;
+        return this.doToast("您输入的手机号有误", "warn");
       }
       var that = this;
-      this.verify = '已发送:';
-      this.countTime = 10;
-      var inter = setInterval(function(){
-        console.log(that.countTime)
-        if ((that.countTime--) < 1) {
-          clearInterval(inter);
-          that.verify = '';
-          that.countTime = '重新发送';
+      
+      this.loading = true;
+      that.$http.get(this.server + '/lantu/verifyPhone/sendCode?phone=' + phone).then(function (res) {
+        if (res.data.status == 0) {
+          that.doToast(res.data.msg, "warn");
+        } if (res.data.status == 1) {
+          that.verify = '已发送:';
+          that.countTime = 60;
+          var inter = setInterval(function(){
+            console.log(that.countTime)
+            if ((that.countTime--) < 1) {
+              clearInterval(inter);
+              that.verify = '';
+              that.countTime = '重新发送';
+            }
+          }, 1000);
         }
-      }, 1000);
+        that.loading = false;
+      });
+
+      
+    },
+    doBindPhone: function(phone, code) {
+      if (isNaN(this.countTime)) {
+        return this.doToast("请先发送验证码", "warn");
+      }
+      var re_phone = /\d{11}/;
+      if (!re_phone.test(phone)) {
+        return this.doToast("您输入的手机号有误", "warn");
+      }
+      if (!code) {
+        return this.doToast("请填写验证码", "warn");
+      }
+      var that = this;
+      that.loading = true;
+      that.$http.get(this.server + '/lantu/verifyPhone/verifyCode?phone=' + phone + '&code=' + code).then(function (res) {
+        if (res.data.status == 0) {
+          that.doToast(res.data.msg, "warn");
+        } else if (res.data.status == 1) {
+          that.phone_show = false;
+          that.isBindPhone = true;
+          that.doAppoint();
+        }
+        that.loading = false;
+      });
+
+    },
+    doToast: function(text, type) {
+        this.toast.text = text;
+        this.toast.type = type;
+        this.toast.show = true;
     }
   }
 }

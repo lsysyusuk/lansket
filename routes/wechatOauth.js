@@ -1,5 +1,6 @@
 var express = require('express');
 var https = require('https');
+var lantuModel = require('../model');
 var router = express.Router();
 
 var mongoose = require("mongoose");
@@ -7,28 +8,7 @@ var _ = require('underscore');
 var config = require('../config');
 var iconv = require('iconv-lite');
 
-var user_schema = new mongoose.Schema({
-    id: mongoose.Schema.Types.ObjectId,
-    customerId : Number,
-    nickname : String,
-    realname : String,
-    phone : Number,
-    avatarUrl : String,
-    birthday : String,
-    gender : Number,
-    country : String,
-    province : String,
-    city : String,
-    wechatOpenid : String,
-    wechatUnionid : String,
-    createTime : Date,
-    updateTime : Date,
-    lastLogin : Date,
-    valid : Number,
-},{collection: "user"});
-
-var user_model = mongoose.model("user", user_schema);
-
+var user_model = lantuModel.user;
 // var testEntity = new tmodel({    name: "testUser"});
 // testEntity.save(function (error, doc){    if(error){        console.log("error: "+error);    }else{        console.log(doc);    }});
 

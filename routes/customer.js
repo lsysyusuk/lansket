@@ -1,50 +1,13 @@
 var express = require('express');
 var router = express.Router();
-
+var lantuModel = require('../model');
 var mongoose = require("mongoose");
 var _ = require('underscore');
 
 var episodeList = [10, 12, 14, 16, 18, 20];
 var courtList = [1, 2, 3, 4];
 
-var appoint_info_schema = new mongoose.Schema({
-  episode : Number,
-  court : Number,
-  status : Number
-});
-
-var user_schema = new mongoose.Schema({
-    id: mongoose.Schema.Types.ObjectId,
-    customerId : Number,
-    nickname : String,
-    realname : String,
-    phone : Number,
-    avatarUrl : String,
-    birthday : String,
-    gender : Number,
-    country : String,
-    province : String,
-    city : String,
-    wechatOpenid : String,
-    wechatUnionid : String,
-    createTime : Date,
-    updateTime : Date,
-    lastLogin : Date,
-    valid : Number,
-},{collection: "user"});
-
-var appoint_schema = new mongoose.Schema({
-    id:mongoose.Schema.Types.ObjectId,
-    customer : user_schema,
-    createTime : Date,
-    updateTime : Date,
-    appointDate: String,
-    appointInfo : [appoint_info_schema],
-    valid : Number,
-    isPay : Number
-},{collection: "appoint"});
-
-var appoint_model = mongoose.model("appoint", appoint_schema);
+var appoint_model = lantuModel.appoint;
 
 var findDisable = function (episode, court, appointJson, userId) {
    var _court = court;
@@ -102,6 +65,10 @@ router.get('/appointList.json', function(req, res, next) {
 
 router.get('/appointList4week.json', function(req, res, next) {
   var user = req.session.user;
+  var isBindPhone = 0;
+  if (user && user.phone) {
+    isBindPhone = 1;
+  }
   var start = req.query.start;
   var end = req.query.end;
   var q = {appointDate:{$lte: end, $gte:start}};
@@ -129,7 +96,7 @@ router.get('/appointList4week.json', function(req, res, next) {
         episode_court_map_week[k] = episode_court_map;
       });
 
-      res.send({"episode_court_map_week": episode_court_map_week, "appointList4week": appointList4week});
+      res.send({"episode_court_map_week": episode_court_map_week, "appointList4week": appointList4week, isBindPhone:isBindPhone});
     }
   });
 });

@@ -146,7 +146,7 @@ router.get('/verifyCode', function (req, res, next) {
                   res.send({status:0, msg:"该手机号已绑定账户"});
                 } else {
                   updateUser.phone = phone;
-                  updateUser.save(function(err) {
+                  updateUser.save(function(err, _resultDoc) {
                     if (err) {
                       console.log("error:" + error);
                       res.send({status:0, msg:"该手机号已绑定账户"});
@@ -154,6 +154,7 @@ router.get('/verifyCode', function (req, res, next) {
                       delete req.session.phone;
                       delete req.session.verifyCode;
                       delete req.session.verifyLimit;
+                      req.session.user = _resultDoc;
                       res.send({status:1});
                     }
                   });

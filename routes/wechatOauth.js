@@ -95,13 +95,13 @@ router.get('/register', function(req, res, next) {
                 insertUser.gender = parseInt(jsonUser.sex);
               }
               console.log("userRegitser----" + JSON.stringify(insertUser))
-              new user_model(insertUser).save(function(err, result) {
+              new user_model(insertUser).save(function(err, _resultDoc) {
                 if (err) {
                   console.warn(err);
                   res.status(500);
                   res.render('error_h');
                 } else {
-                  req.session.user = result;
+                  req.session.user = _resultDoc;
                   res.redirect(req.session.redirectUrl);
                 }
               })

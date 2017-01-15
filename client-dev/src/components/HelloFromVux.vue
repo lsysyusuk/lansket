@@ -30,13 +30,20 @@
         <span v-for='court in episode.courtList' style="padding-left: 0.3rem"><font color="red">{{court}}</font>号场</span>
       </div>
     </confirm>
+    <confirm :show.sync="phone_show" :cancel-text="'取消'" :confirm-text="'确认'" :title="'手机绑定'" @on-confirm="doBindPhone(phone,verifyCode)" >
+      <input type="text" placeholder="手机号" v-model="phone" style="width: 90%; border: 1px solid #a0a0a0; border-radius: .25rem; height: 1.6rem; padding-left: 0.5rem;" />
+      <div style="margin-top: 1rem;">
+        <input type="text" placeholder="验证码" v-model="verifyCode" style="width: 40%; border: 1px solid #a0a0a0; border-radius: .25rem; height: 1.6rem; padding-left: 0.5rem; margin-right: 9%;" />
+        <x-button mini type="primary" :disabled="!isNaN(countTime)" style="width:40%; font-size: 0.8rem" @click='doSendCode(phone)'>{{verify}}{{countTime}}</x-button>
+      </div>
+    </confirm>
   </div>
   <toast :show.sync="toast.show" :text="toast.text" :type="toast.type"></toast>
   <loading :show.sync="loading" :text="'加载中'"></loading>
 </template>
 
 <script>
-import {XHeader, Group, Cell, ButtonTab, ButtonTabItem, XButton, Confirm, Scroller, Toast, Loading} from 'vux/src/components';
+import {XHeader, Group, Cell, ButtonTab, ButtonTabItem, XButton, Confirm, Scroller, Toast, Loading, XInput} from 'vux/src/components';
 import { _ } from 'underscore/underscore-min';
 // import Scroller from './Scroller'
 export default {
@@ -50,7 +57,8 @@ export default {
     Confirm,
     Scroller,
     Toast,
-    Loading
+    Loading,
+    XInput
   },
   data: function (){
     console.log("data start");
@@ -76,12 +84,18 @@ export default {
       weekList: weekList,
       current_date: weekList[2].date,
       show: false,
-      server: "",
-      // server: "http://127.0.0.1",
+      // server: "",
+      server: "http://127.0.0.1",
       appointText:[],
       appointInfo:[],
       toast:{show:false, type:"success", text:""},
-      loading:false
+      loading:false,
+      phone_show:false,
+      isBindPhone:false,
+      verify:'',
+      countTime:'发送验证码',
+      phone: null,
+      verifyCode: null
     }
     
   },
@@ -119,6 +133,9 @@ export default {
       return (num % 2) > 0 ? false : true
     },
     doAppoint: function () {
+      if (!this.isBindPhone) {
+        return this.phone_show = true;
+      }
       var appointInfo = [];
       var appointText = [];
       _.each(this.episode_court_map, function (_episode) {
@@ -242,8 +259,31 @@ export default {
         that.appointList4week = _.extend(that.appointList4week,res.data.appointList4week);
         that.loading = false;
       });
+    },
+    doSendCode: function (phone) {
+      console.log(phone);
+      if (!isNaN(this.countTime)) {
+        return;
+      }
+      var re_phone = /\d{11}/;
+      if (!re_phone.test(phone)) {
+        this.toast.text = "您输入的手机号有误";
+        this.toast.type = "warn";
+        this.toast.show = true;
+        return;
+      }
+      var that = this;
+      this.verify = '已发送:';
+      this.countTime = 10;
+      var inter = setInterval(function(){
+        console.log(that.countTime)
+        if ((that.countTime--) < 1) {
+          clearInterval(inter);
+          that.verify = '';
+          that.countTime = '重新发送';
+        }
+      }, 1000);
     }
-    
   }
 }
 
@@ -404,5 +444,11 @@ export default {
 }
 .description.disable {
   background-color: #bfbfbf;
+}
+.weui_dialog_bd {
+  text-align: center !important;
+}
+.weui_btn_disabled {
+  background-color: #c1c1c1 !important;
 }
 </style>

@@ -10,6 +10,7 @@ var bodyParser = require('body-parser');
 var index = require('./routes/index');
 var customer = require('./routes/customer');
 var oauth = require('./routes/wechatOauth');
+var sms = require('./routes/sms');
 var config = require('./config');
 
 var hbs = require('hbs');
@@ -56,15 +57,15 @@ app.use(function (req, res, next) {
     var url = req.originalUrl;//获取url
     req.session.redirectUrl = url;
 
-    // req.session.user = {valid: 1,
-    //   wechatOpenid: 'okIULwm_4RyQd779dYI4cCYFzwbU',
-    //   nickname: 'syusuk',
-    //   country: '中国',
-    //   province: '北京',
-    //   city: '丰台',
-    //   avatarUrl: 'http://wx.qlogo.cn/mmopen/xPKCxELaaj6xJFcfBibjR6FksibCP33Ns7nyx4j8OXgnyRTHwC1xWtL8dRy5dcMbmWRlfj7tpwGMB3jxTgsujLVRIBC01h49ibia/0',
-    //   _id: mongoose.Types.ObjectId('58788d8774957b14a31bb0dd')
-    // };
+    req.session.user = {valid: 1,
+      wechatOpenid: 'okIULwm_4RyQd779dYI4cCYFzwbU',
+      nickname: 'syusuk',
+      country: '中国',
+      province: '北京',
+      city: '丰台',
+      avatarUrl: 'http://wx.qlogo.cn/mmopen/xPKCxELaaj6xJFcfBibjR6FksibCP33Ns7nyx4j8OXgnyRTHwC1xWtL8dRy5dcMbmWRlfj7tpwGMB3jxTgsujLVRIBC01h49ibia/0',
+      _id: mongoose.Types.ObjectId('58788d8774957b14a31bb0dd')
+    };
 
     if(!req.session.user){
       var redUrl = "http://"+ config.domain +"/lantu/oauth/login";
@@ -80,6 +81,7 @@ app.use(function (req, res, next) {
 app.use('/lantu/', index);
 app.use('/lantu/customer', customer);
 app.use('/lantu/oauth', oauth);
+app.use('/lantu/verifyPhone', sms);
 
 // mongo start
 

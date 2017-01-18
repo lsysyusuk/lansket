@@ -16,8 +16,13 @@
 
 </style>
 <style>
-	body {
+html {
+  height: 100%
+}
+body {
   background-color: #fbf9fe;
+  overflow: hidden;
+  height: 100%;
 }
 
 @media screen and (min-width: 320px) {
@@ -31,9 +36,7 @@
     font-size: 16px !important;
   }
 }
-body {
-	overflow: hidden
-}
+
 .page {
   position: absolute;
   left: 0;

@@ -1,13 +1,13 @@
 <template>
   <div class="page manage" style="background:#fff">
     <x-header :left-options="{showBack: true}" >篮&nbsp;&nbsp;途</x-header>
-    <div>
+    <div style="height:100%">
        <tab :index.sync="index" v-ref:tab :line-width=2 active-color='#fc378c' style="height:2rem;">
-        <tab-item  class="vux-center"  v-for="item in list" >{{item}}</tab-item>
+        <tab-item  class="vux-center"  v-for="item in list">{{item}}</tab-item>
       </tab>
       <swiper :index.sync="index" v-ref:swiper height="100%" :show-dots="false"  :style="calculateWidth(appointList4week.after)" >
         <swiper-item>
-          <scroller v-ref:after :use-pullup="true" :use-pulldown="true" :pullup-config="upConfig" :pulldown-config="upConfig"  lock-x :scrollbar-y="false"  @pullup:loading='doPullup()' @pulldown:loading='doPulldown()'>
+          <scroller v-ref:after :use-pullup="true" :use-pulldown="true" :pullup-config="upConfig" :pulldown-config="upConfig"  lock-x :scrollbar-y="false"  @pullup:loading='doPullup()' @pulldown:loading='doPulldown()' height="100%">
             <div v-el:aftercontent :style="calculateWidth(appointList4week.after)" >
               <group :title="day.date" v-for="day in appointList4week.after">
                 <cell v-for="appoint in day.appoint" :title="appoint.customer.nickname"  @click="appointDetail(appoint)"  is-link>
@@ -16,6 +16,10 @@
                   {{getTotal(appoint.appointInfo).count}}场时 |￥{{getTotal(appoint.appointInfo).price}}
                 </cell>
               </group>
+              <div style="padding-top:2rem; color:#f27330; text-align: center;">
+                <icon :show='appointList4week.after.length == 0' type="info" class="icon_big"></icon>
+                <p>暂无内容</p>
+              </div>
             </div>
           </scroller>
         </swiper-item>
@@ -29,6 +33,10 @@
                   {{getTotal(appoint.appointInfo).count}}场时 |￥{{getTotal(appoint.appointInfo).price}}
                 </cell>
               </group>
+              <div style="padding-top:2rem; color:#f27330; text-align: center;">
+                <icon :show='appointList4week.after.length == 0' type="info" class="icon_big"></icon>
+                <p>暂无内容</p>
+              </div>
             </div>
           </scroller>
         </swiper-item>
@@ -49,7 +57,7 @@
 </template>
 
 <script>
-import {XHeader, Tab, TabItem, Swiper, SwiperItem, Scroller, Group, Cell, Confirm, Switch, Toast,Loading} from 'vux/src/components';
+import {XHeader, Tab, TabItem, Swiper, SwiperItem, Scroller, Group, Cell, Confirm, Switch, Toast, Loading, Icon} from 'vux/src/components';
 import { _ } from 'underscore/underscore-min';
 export default {
   components: {
@@ -65,6 +73,7 @@ export default {
     Switch,
     Toast,
     Loading,
+    Icon
   },
   data () {
     var today = this.current_day(new Date());
@@ -136,7 +145,7 @@ export default {
       var hn = _.reduce(appointList4week,function (m,n) {
         return m + (n.appoint.length * 4 + 2);
       },0);
-      return "height:" + hn + "rem";
+      return "height:" + hn + "rem; min-height: 100%;";
     },
     getTotal: function (ecList) {
       var court = _.reduce(ecList, function (m,n) {
@@ -226,6 +235,7 @@ h1 {
 }
 .vux-tab-item {
   line-height: inherit !important;
+  color: #f27330 !important;
 }
 .weui_cells {
   font-size: 0.8rem
@@ -287,5 +297,9 @@ a {
 .xs-plugin-pulldown-up:after {
   transform: rotate(180deg);
   -webkit-transform: rotate(180deg); 
+}
+.icon_big.weui_icon_info:before {
+  font-size: 5rem;
+  color: #f27330;
 }
 </style>

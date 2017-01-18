@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import App from './App'
-import Home from './components/HelloFromVux'
-// import Home from './components/Hello'
+import Appoint from './components/Appoint'
+import Manage from './components/Manage'
 import VueResource from 'vue-resource'
 import VueRouter from 'vue-router'
 
@@ -17,7 +17,10 @@ const router = new VueRouter()
 
 router.map({
   '/': {
-    component: Home
+    component: Appoint
+  },
+  '/manage': {
+  	component: Manage
   }
 })
 

@@ -15,7 +15,7 @@ var findDisable = function (episode, court, appointJson, userId) {
     var _self = false;
     var map = _.some(appointJson, function (e) {
       return _.some(e.appointInfo, function (ee) {
-        if (ee.status == 1 && ee.episode == _episode && ee.court == _court) {
+        if (ee.status == true && ee.episode == _episode && ee.court == _court) {
           if (e.customer && e.customer._id.toString() == userId.toString()) {
             _self = true;
           }
@@ -105,7 +105,11 @@ router.post('/doAppoint.json', function(req, res, next) {
   var user = req.session.user;
   var date = new Date();
   var appointDate = req.body.appointDate;
-  var insertAppoint = {customer:user, createTime:date, updateTime:date, valid:1, isPay:0};
+  appointDate = _.map(appointDate,function(n) {
+    n.status = 1;
+    return n;
+  })
+  var insertAppoint = {customer:user, createTime:date, updateTime:date, valid:true, isPay:false};
   insertAppoint.appointDate = req.body.appointDate;
   insertAppoint.appointInfo = JSON.parse(req.body.appointInfo);
   var q = {"customer._id":user._id,"appointDate":appointDate}

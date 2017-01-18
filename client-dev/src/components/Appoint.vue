@@ -1,51 +1,46 @@
 <template>
-  <div class="appoint">
-    <x-header :left-options="{showBack: false}" >篮&nbsp;&nbsp;途</x-header>
-  <scroller v-ref:scroller v-ref:scroller lock-y :scrollbar-x="false">
-    <div id="scroll-content" v-el:scrollcontent :style="calculateWidth(weekList)">
-      <div class="scroll-item last" @click="more_week('last')"></div>
-      <div class="scroll-item" v-for="item in weekList" :class="[current_date == item.date ? 'active' : '']" @click="changeDay(item.date)" >
-        {{item.name}}<br><span>{{treatDate(item.date)}}</span>
+  <div class="appoint page">
+    <x-header :left-options="{showBack: false}" :right-options="{showMore: true}" @on-click-more="toManage" >篮&nbsp;&nbsp;途</x-header>
+    <scroller v-ref:scroller  lock-y :scrollbar-x="false">
+      <div id="scroll-content" v-el:scrollcontent :style="calculateWidth(weekList)">
+        <div class="scroll-item last" @click="more_week('last')"></div>
+        <div class="scroll-item" v-for="item in weekList" :class="[current_date == item.date ? 'active' : '']" @click="changeDay(item.date)" >
+          {{item.name}}<br><span>{{treatDate(item.date)}}</span>
+        </div>
+        <div class="scroll-item next" @click="more_week('next')"></div>
       </div>
-      <div class="scroll-item next" @click="more_week('next')"></div>
-  </div>
-</scroller>
-  <cell v-for="courtList in episode_court_map" :title="treatEpisode(courtList.episode)" :is-link="false" >
+    </scroller>
+    <cell v-for="courtList in episode_court_map" :title="treatEpisode(courtList.episode)" :is-link="false" >
       <button-tab class='court-list'>
          <button-tab-item v-for="(index, court) in courtList.courtList" :class="[treatDivide2(index) ?'court-l' : 'court-r', court.status == 2 ? 'disable' : '', court.status == 1 ? 'active' : '']"  @click='courtClick(court)' ><span>￥200</span></button-tab-item>
       </button-tab>
     </cell>
     <cell :is-link="false" style='display: block; text-align: left'><span class='description avai'>&nbsp;&nbsp;&nbsp; </span><span style='color:#000'>可预订</span><span class='description choose'>&nbsp;&nbsp;&nbsp; </span><span style='color:#000'>选中</span><span class='description disable'>&nbsp;&nbsp;&nbsp; </span><span style='color:#000'>不可定</span></cell>
     <cell :is-link="false"></cell>
-  <!-- <group>
-    
-    
-  </group> -->
-  <x-button type='primary' style="position: fixed; bottom: 0; background-color:#f27330; opacity: 0.9; border-radius: 0;" @click='doAppoint'>我要预定</x-button>
+    <x-button type='primary' style="position: fixed; bottom: 0; background-color:#f27330; opacity: 0.9; border-radius: 0;" @click='doAppoint'>我要预定</x-button>
+    <div>
+      <confirm :show.sync="show" :cancel-text="'取消'" :confirm-text="'确认'" :title="'预约确认'" @on-confirm="doAppointConfirm" >
+        <div v-for='episode in appointText' style="text-align: center">
+          {{treatEpisode(episode.episode)}}
+          <span v-for='court in episode.courtList' style="padding-left: 0.3rem"><font color="red">{{court}}</font>号场</span>
+        </div>
+      </confirm>
+      <confirm :show.sync="phone_show" :cancel-text="'取消'" :confirm-text="'确认'" :title="'手机绑定'" @on-confirm="doBindPhone(phone,verifyCode)" >
+        <input type="text" placeholder="手机号" v-model="phone" style="width: 90%; border: 1px solid #a0a0a0; border-radius: .25rem; height: 1.6rem; padding-left: 0.5rem;" />
+        <div style="margin-top: 1rem;">
+          <input type="text" placeholder="验证码" v-model="verifyCode" style="width: 40%; border: 1px solid #a0a0a0; border-radius: .25rem; height: 1.6rem; padding-left: 0.5rem; margin-right: 9%;" />
+          <x-button mini type="primary" :disabled="!isNaN(countTime)" style="width:40%; font-size: 0.8rem" @click='doSendCode(phone)'>{{verify}}{{countTime}}</x-button>
+        </div>
+      </confirm>
+      <toast :show.sync="toast.show" :text="toast.text" :type="toast.type"></toast>
+      <loading :show.sync="loading" :text="'加载中'"></loading>
+    </div>
   </div>
-  <div>
-    <confirm :show.sync="show" :cancel-text="'取消'" :confirm-text="'确认'" :title="'预约确认'" @on-confirm="doAppointConfirm" >
-      <div v-for='episode in appointText' style="text-align: center">
-        {{treatEpisode(episode.episode)}}
-        <span v-for='court in episode.courtList' style="padding-left: 0.3rem"><font color="red">{{court}}</font>号场</span>
-      </div>
-    </confirm>
-    <confirm :show.sync="phone_show" :cancel-text="'取消'" :confirm-text="'确认'" :title="'手机绑定'" @on-confirm="doBindPhone(phone,verifyCode)" >
-      <input type="text" placeholder="手机号" v-model="phone" style="width: 90%; border: 1px solid #a0a0a0; border-radius: .25rem; height: 1.6rem; padding-left: 0.5rem;" />
-      <div style="margin-top: 1rem;">
-        <input type="text" placeholder="验证码" v-model="verifyCode" style="width: 40%; border: 1px solid #a0a0a0; border-radius: .25rem; height: 1.6rem; padding-left: 0.5rem; margin-right: 9%;" />
-        <x-button mini type="primary" :disabled="!isNaN(countTime)" style="width:40%; font-size: 0.8rem" @click='doSendCode(phone)'>{{verify}}{{countTime}}</x-button>
-      </div>
-    </confirm>
-  </div>
-  <toast :show.sync="toast.show" :text="toast.text" :type="toast.type"></toast>
-  <loading :show.sync="loading" :text="'加载中'"></loading>
 </template>
 
 <script>
 import {XHeader, Group, Cell, ButtonTab, ButtonTabItem, XButton, Confirm, Scroller, Toast, Loading, XInput} from 'vux/src/components';
 import { _ } from 'underscore/underscore-min';
-// import Scroller from './Scroller'
 export default {
   components: {
     Group,
@@ -58,7 +53,8 @@ export default {
     Scroller,
     Toast,
     Loading,
-    XInput
+    XInput,
+
   },
   data: function (){
     console.log("data start");
@@ -319,17 +315,21 @@ export default {
         this.toast.text = text;
         this.toast.type = type;
         this.toast.show = true;
+    },
+    toManage: function () {
+      this.$router.go('/manage')
     }
   }
 }
 
 </script>
 
-<style>
+<style scope>
 .vux-header {
   background-color: #f27330 !important;
   margin: 0 0 0.2rem;
   box-shadow: 0 0 0.5rem #000;
+  height: 3rem
 }
 .vux-demo {
   text-align: center;
@@ -457,18 +457,7 @@ export default {
   background: url(../assets/next-week.png) no-repeat center!important;
   background-size:100% 100% !important;
 }
-.appoint {
-  position: absolute;
-  left: 0;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 100%;
-  font-size: 16px;
-  height: 100%;
-  background: url(../assets/flour.png);
-  overflow: hidden
-}
+
 .description {
   margin: 0 0.3rem 0 2rem; 
 }

@@ -9,6 +9,7 @@ var bodyParser = require('body-parser');
 
 var index = require('./routes/index');
 var customer = require('./routes/customer');
+var manager = require('./routes/manager');
 var oauth = require('./routes/wechatOauth');
 var sms = require('./routes/sms');
 var config = require('./config');
@@ -62,7 +63,7 @@ app.use(function (req, res, next) {
     //   country: '中国',
     //   province: '北京',
     //   city: '丰台',
-    //   phone: 15620517445
+    //   phone: 15620517445,
     //   avatarUrl: 'http://wx.qlogo.cn/mmopen/xPKCxELaaj6xJFcfBibjR6FksibCP33Ns7nyx4j8OXgnyRTHwC1xWtL8dRy5dcMbmWRlfj7tpwGMB3jxTgsujLVRIBC01h49ibia/0',
     //   _id: mongoose.Types.ObjectId('58788d8774957b14a31bb0dd')
     // };
@@ -80,6 +81,7 @@ app.use(function (req, res, next) {
 
 app.use('/lantu/', index);
 app.use('/lantu/customer', customer);
+app.use('/lantu/manager', manager);
 app.use('/lantu/oauth', oauth);
 app.use('/lantu/verifyPhone', sms);
 

@@ -4,7 +4,7 @@ var mongoose = require("mongoose");
 var appoint_info_schema = new mongoose.Schema({
   episode : Number,
   court : Number,
-  status : Number
+  status : Boolean
 });
 
 var user_schema = new mongoose.Schema({
@@ -24,7 +24,7 @@ var user_schema = new mongoose.Schema({
     createTime : Date,
     updateTime : Date,
     lastLogin : Date,
-    valid : Number,
+    valid : Boolean,
 },{collection: "user"});
 
 var appoint_schema = new mongoose.Schema({
@@ -34,8 +34,8 @@ var appoint_schema = new mongoose.Schema({
     updateTime : Date,
     appointDate: String,
     appointInfo : [appoint_info_schema],
-    valid : Number,
-    isPay : Number
+    valid : Boolean,
+    isPay : Boolean
 },{collection: "appoint"});
 
 var appoint_model = mongoose.model("appoint", appoint_schema);

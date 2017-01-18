@@ -33,6 +33,20 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'dist')));
 
+// mongo start
+
+mongoose.Promise = global.Promise;
+
+mongoose.connect('mongodb://'+ config.db.username +':'+ config.db.password +'@'+ config.db.host +':'+ config.db.port +'/'+ config.db.database);
+
+mongoose.connection.on("error", function (error){
+    console.log("连接数据库失败"+error);
+}).on("open", function (){
+    console.log("数据库连接成功！！！");
+});
+
+// mongo end
+
 app.use(session({
      secret: 'lantu123',
      name: 'lantu',
@@ -57,16 +71,16 @@ app.use(function (req, res, next) {
     var url = req.originalUrl;//获取url
     req.session.redirectUrl = url;
 
-    // req.session.user = {valid: 1,
-    //   wechatOpenid: 'okIULwm_4RyQd779dYI4cCYFzwbU',
-    //   nickname: 'syusuk',
-    //   country: '中国',
-    //   province: '北京',
-    //   city: '丰台',
-    //   phone: 15620517445,
-    //   avatarUrl: 'http://wx.qlogo.cn/mmopen/xPKCxELaaj6xJFcfBibjR6FksibCP33Ns7nyx4j8OXgnyRTHwC1xWtL8dRy5dcMbmWRlfj7tpwGMB3jxTgsujLVRIBC01h49ibia/0',
-    //   _id: mongoose.Types.ObjectId('58788d8774957b14a31bb0dd')
-    // };
+    req.session.user = {valid: 1,
+      wechatOpenid: 'okIULwm_4RyQd779dYI4cCYFzwbU',
+      nickname: 'syusuk',
+      country: '中国',
+      province: '北京',
+      city: '丰台',
+      phone: 15620517445,
+      avatarUrl: 'http://wx.qlogo.cn/mmopen/xPKCxELaaj6xJFcfBibjR6FksibCP33Ns7nyx4j8OXgnyRTHwC1xWtL8dRy5dcMbmWRlfj7tpwGMB3jxTgsujLVRIBC01h49ibia/0',
+      _id: mongoose.Types.ObjectId('58788d8774957b14a31bb0dd')
+    };
 
     if(!req.session.user){
       var redUrl = "http://"+ config.domain +"/lantu/oauth/login";
@@ -84,18 +98,6 @@ app.use('/lantu/customer', customer);
 app.use('/lantu/manager', manager);
 app.use('/lantu/oauth', oauth);
 app.use('/lantu/verifyPhone', sms);
-
-// mongo start
-
-mongoose.connect('mongodb://'+ config.db.username +':'+ config.db.password +'@'+ config.db.host +':'+ config.db.port +'/'+ config.db.database);
-
-mongoose.connection.on("error", function (error){
-    console.log("连接数据库失败"+error);
-}).on("open", function (){
-    console.log("数据库连接成功！！！");
-});
-
-// mongo end
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

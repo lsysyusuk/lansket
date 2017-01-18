@@ -9,32 +9,24 @@ var courtList = [1, 2, 3, 4];
 
 var appoint_model = lantuModel.appoint;
 
-var findDisable = function (episode, court, appointJson, userId) {
-   var _court = court;
-    var _episode = episode;
-    var _self = false;
-    var map = _.some(appointJson, function (e) {
-      return _.some(e.appointInfo, function (ee) {
-        if (ee.status == 1 && ee.episode == _episode && ee.court == _court) {
-          if (e.customer && e.customer._id.toString() == userId.toString()) {
-            _self = true;
-          }
-          
-          return true;
-        } else {
-          return 0;
-        }
-      });	
-    })
-    if (map) {
-      if(_self) {
-        return 1;
-      } else {
-        return 2;
-      }
-    } else {
-      return 0;
-    }
+var next_week = function (d) {
+  if (d) {
+    d = new Date(d)
+  } else {
+    d = new Date()
+  }
+  d = +d + 1000*60*60*24*7;
+  d = new Date(d);
+  var month = (d.getMonth()+1);
+  var day = d.getDate();
+  if (month < 10) {
+    month = "0" + month;
+  }
+  if (day < 10) {
+    day = "0" + day;
+  }
+  var s = d.getFullYear()+"-"+month+"-"+day;
+  return s;
 }
 
 
@@ -45,9 +37,9 @@ router.get('/appointList4week.json', function(req, res, next) {
     isManager = 1;
   }
   var start = req.query.start;
-  var end = req.query.end;
+  var end = next_week(start);
   var q = {appointDate:{$lte: end, $gte:start}};
-  appoint_model.find(q, function (error, docs){
+  appoint_model.find(q).sort('appointDate').exec(function (error, docs){
     if(error){
         console.log("error: " + error);
     }else{
@@ -62,9 +54,17 @@ router.get('/appointList4week.json', function(req, res, next) {
           appointList4week.push({date:e.appointDate,appoint:[e]})
         }
       });
-      
-
-      res.send({"appointList4week": appointList4week, isManager:isManager});
+      appoint_model.count({appointDate:{$gte:end}}, function(err, docs) {
+        if (err) {
+          console.log(err);
+        } else {
+          if (docs > 0) {
+            return res.send({"appointList4week": appointList4week, isManager:isManager, isComplete:false, current:end});
+          } else {
+            return res.send({"appointList4week": appointList4week, isManager:isManager, isComplete:true, current:end});
+          }
+        }
+      })
     }
   });
 });

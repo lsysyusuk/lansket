@@ -53,8 +53,7 @@ export default {
     Scroller,
     Toast,
     Loading,
-    XInput,
-
+    XInput
   },
   data: function (){
     console.log("data start");
@@ -80,8 +79,8 @@ export default {
       weekList: weekList,
       current_date: weekList[2].date,
       show: false,
-      server: "",
-      // server: "http://127.0.0.1",
+      // server: "",
+      server: "http://127.0.0.1",
       appointText:[],
       appointInfo:[],
       toast:{show:false, type:"success", text:""},

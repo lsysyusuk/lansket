@@ -7,7 +7,7 @@
       </tab>
       <swiper :index.sync="index" v-ref:swiper height="100%" :show-dots="false"  :style="calculateWidth(appointList4week)" >
         <swiper-item>
-          <scroller v-ref:after  lock-x :scrollbar-y="false" >
+          <scroller v-ref:after :use-pullup="true" :use-pulldown="true" :pullup-config="upConfig" :pulldown-config="upConfig"  lock-x :scrollbar-y="false"  @pullup:loading='doPullup()' @pulldown:loading='doPulldown()'>
             <div v-el:aftercontent :style="calculateWidth(appointList4week)" >
               <group :title="day.date" v-for="day in appointList4week">
                 <cell v-for="appoint in day.appoint" :title="appoint.customer.nickname"  @click="appointDetail(appoint)"  is-link>
@@ -28,15 +28,6 @@
             </div>
           </scroller>
         </swiper-item>
-        <!-- <swiper-item>
-          <scroller v-ref:last  lock-x :scrollbar-y="false" style="height:800px">
-            <div v-el:scrollcontent style="height:800px">
-              <group :title="day.date" v-for="day in appointList4week">
-                <cell v-for="appoint in day.appoint" :title="appoint.customer.nickname"></cell>
-              </group>
-            </div>
-          </scroller>
-        </swiper-item> -->
       </swiper>
     </div>
     <confirm :show.sync="detail_show" :cancel-text="'取消'" :confirm-text="'确认'" title="预约详情" @on-confirm="doSaveAppoint()" >
@@ -47,11 +38,6 @@
       <group v-for='ec in editAppoint.appointInfo' >
         <switch  :title="treatEpisode(ec.episode) + ' | ' + ec.court + '号场' + (ec.status == 1 ? '(有效)' : '(失效)')" :title="ec.status ? '有效' : '失效'" :value.sync="ec.status"></switch>
       </group>
-      <!-- <div v-for='ec in editAppoint.appointInfo' style="text-align: center">
-          {{treatEpisode(ec.episode)}}
-          <span style="padding-left: 0.3rem"><font color="red">{{ec.court}}</font>号场</span>
-          
-        </div> -->
     </confirm>
     <toast :show.sync="toast.show" :text="toast.text" :type="toast.type"></toast>
     <loading :show.sync="loading" :text="'加载中'"></loading>
@@ -74,32 +60,28 @@ export default {
     Confirm,
     Switch,
     Toast,
-    Loading
+    Loading,
   },
   data () {
-    var weekList = [];
-    while(weekList.length < 7) {
-      if (weekList.length == 0) {
-        weekList.push(this.next_day())
-      } else {
-        weekList.push(this.next_day(weekList[weekList.length - 1].date, 'next'))
-      }
-    }
+    var today = this.current_day(new Date());
+    var yesterday = this.current_day(new Date(), true);
     return {
       // note: changing this line won't causes changes
       // with hot-reload because the reloaded component
       // preserves its current state and we are modifying
       // its initial state.
       msg: 'Hello World!',
-      server: "",
-      // server: "http://127.0.0.1",
-      weekList: weekList,
+      // server: "",
+      server: "http://127.0.0.1",
       appointList4week: [],
       list:['after', 'past'],
       index:0,
       detail_show:false,
       toast:{show:false, type:"success", text:""},
       loading:false,
+      upConfig:{autoRefresh:false, upContent:' ', downContent:' ', content:' ', loadingContent:' ', height:30},
+      // upConfig:{},
+      currentDate:{after:today, past:yesterday, today:today, yesterday:yesterday},
       editAppoint:{}
     }
   },
@@ -107,51 +89,40 @@ export default {
     console.log("ready start");
     var that = this;
     that.loading = true;
-    // that.$http.get(this.server + '/lantu/customer/appointList.json?date=' + that.weekList[0].date).then(function (res) {
-    //   that.episode_court_map = res.data.episode_court_map;
-    //   that.appointJson = res.data.appointJson;
-    //   that.loading = false;
-    // });
-    that.$http.get(this.server + '/lantu/manager/appointList4week.json?start=' + that.weekList[0].date + '&end=' +  that.weekList[6].date).then(function (res) {
+    that.$http.get(this.server + '/lantu/manager/appointList4week.json?start=' + that.currentDate.after).then(function (res) {
       that.appointList4week = res.data.appointList4week;
+      that.currentDate.after = res.data.current;
       // that.isBindPhone = res.data.isBindPhone
       that.$nextTick(() => {
         that.$refs.after.reset()
         that.$refs.past.reset()
       });
+      if (res.data.isComplete) {
+        that.$refs.after.pullup.stop();
+      }
       that.loading = false;
     });
   },
   methods: {
-    next_day: function (d, ctrl) {
-        var week_map = ['周日', '周一','周二','周三','周四','周五','周六'];
-        if (d) {
-          d = new Date(d);
-          if (ctrl == "last") {
-            d = +d - 1000*60*60*24;
-          } else {
-            d = +d + 1000*60*60*24;
-          }
-          d = new Date(d);
-        } else {
-          d = new Date();
-          d = +d - 1000*60*60*24*2;
-          d = new Date(d);
-        }
-        var month = (d.getMonth()+1);
-        var day = d.getDate();
-        if (month < 10) {
-          month = "0" + month;
-        }
-        if (day < 10) {
-          day = "0" + day;
-        }
-        var s = d.getFullYear()+"-"+month+"-"+day;
-        return {'name': week_map[d.getDay()], 'date': s};
+    current_day: function (d, last) {
+      if (last) {
+        d = +d - 1000*60*60*24;
+        d = new Date(d);
+      }
+      var month = (d.getMonth()+1);
+      var day = d.getDate();
+      if (month < 10) {
+        month = "0" + month;
+      }
+      if (day < 10) {
+        day = "0" + day;
+      }
+      var s = d.getFullYear()+"-"+month+"-"+day;
+      return s;
     },
     calculateWidth: function (appointList4week) {
       var hn = _.reduce(appointList4week,function (m,n) {
-        return m + (n.appoint.length * 4.5 + 3);
+        return m + (n.appoint.length * 4 + 2);
       },0);
       return "height:" + hn + "rem";
     },
@@ -190,6 +161,43 @@ export default {
       this.toast.type = _type;
       this.toast.show = true;
     },
+    doPullup: function() {
+      var that = this;
+      that.loading = true;
+      that.$http.get(this.server + '/lantu/manager/appointList4week.json?start=' + that.currentDate.after).then(function (res) {
+        that.appointList4week = that.appointList4week.concat(res.data.appointList4week);
+        that.currentDate.after = res.data.current;
+        that.$nextTick(() => {
+          that.$refs.after.reset()
+          that.$refs.past.reset()
+        });
+        if (res.data.isComplete) {
+          that.$refs.after.pullup.stop();
+        }
+        this.$refs.after.pullup.complete();
+        that.loading = false;
+      });
+    },
+    doPulldown: function () {
+      var that = this;
+      that.loading = true;
+      that.$http.get(this.server + '/lantu/manager/appointList4week.json?start=' + that.currentDate.today).then(function (res) {
+        that.appointList4week = res.data.appointList4week;
+        that.currentDate.after = res.data.current;
+        // that.isBindPhone = res.data.isBindPhone
+        that.$refs.after.pulldown.reset();
+        that.$nextTick(() => {
+          that.$refs.after.reset()
+          that.$refs.past.reset()
+        });
+        if (res.data.isComplete) {
+          that.$refs.after.pullup.stop();
+        } else {
+          that.$refs.after.pullup.restart();
+        }
+        that.loading = false;
+      });
+    }
   }
 }
 </script>
@@ -249,5 +257,20 @@ a {
 }
 .weui_dialog_bd {
   text-align: left !important
+}
+.xs-plugin-pulldown-container:after {
+    content: '';
+    display: block;
+    width: 2rem;
+    height:1.2rem;
+    margin-left: -1rem;
+    position: absolute;
+    left: 50%;
+    bottom: 0.5rem;
+    background: url("data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2026%2040'%3E%3Cpolygon%20points%3D'9%2C22%209%2C0%2017%2C0%2017%2C22%2026%2C22%2013.5%2C40%200%2C22'%20fill%3D'%238c8c8c'%2F%3E%3C%2Fsvg%3E")  no-repeat center;
+}
+.xs-plugin-pulldown-up:after {
+  transform: rotate(180deg);
+  -webkit-transform: rotate(180deg); 
 }
 </style>

@@ -16,8 +16,8 @@
                   {{getTotal(appoint.appointInfo).count}}场时 |￥{{getTotal(appoint.appointInfo).price}}
                 </cell>
               </group>
-              <div style="padding-top:2rem; color:#f27330; text-align: center;">
-                <icon :show='appointList4week.after.length == 0' type="info" class="icon_big"></icon>
+              <div v-show='appointList4week.after.length == 0' style="padding-top:2rem; color:#f27330; text-align: center;">
+                <icon  type="info" class="icon_big"></icon>
                 <p>暂无内容</p>
               </div>
             </div>
@@ -33,8 +33,8 @@
                   {{getTotal(appoint.appointInfo).count}}场时 |￥{{getTotal(appoint.appointInfo).price}}
                 </cell>
               </group>
-              <div style="padding-top:2rem; color:#f27330; text-align: center;">
-                <icon :show='appointList4week.after.length == 0' type="info" class="icon_big"></icon>
+              <div v-show='appointList4week.past.length == 0' style="padding-top:2rem; color:#f27330; text-align: center;">
+                <icon  type="info" class="icon_big"></icon>
                 <p>暂无内容</p>
               </div>
             </div>

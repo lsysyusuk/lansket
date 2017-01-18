@@ -2,14 +2,14 @@
   <div class="page manage" style="background:#fff">
     <x-header :left-options="{showBack: true}" >篮&nbsp;&nbsp;途</x-header>
     <div>
-       <tab :index.sync="index" v-ref:tab :line-width=2 active-color='#fc378c' style="height:3rem">
+       <tab :index.sync="index" v-ref:tab :line-width=2 active-color='#fc378c' style="height:2rem;">
         <tab-item  class="vux-center"  v-for="item in list" >{{item}}</tab-item>
       </tab>
-      <swiper :index.sync="index" v-ref:swiper height="100%" :show-dots="false"  :style="calculateWidth(appointList4week)" >
+      <swiper :index.sync="index" v-ref:swiper height="100%" :show-dots="false"  :style="calculateWidth(appointList4week.after)" >
         <swiper-item>
           <scroller v-ref:after :use-pullup="true" :use-pulldown="true" :pullup-config="upConfig" :pulldown-config="upConfig"  lock-x :scrollbar-y="false"  @pullup:loading='doPullup()' @pulldown:loading='doPulldown()'>
-            <div v-el:aftercontent :style="calculateWidth(appointList4week)" >
-              <group :title="day.date" v-for="day in appointList4week">
+            <div v-el:aftercontent :style="calculateWidth(appointList4week.after)" >
+              <group :title="day.date" v-for="day in appointList4week.after">
                 <cell v-for="appoint in day.appoint" :title="appoint.customer.nickname"  @click="appointDetail(appoint)"  is-link>
                   <img slot="icon" :src="appoint.customer.avatarUrl" style="width:2rem;border-radius:0.5rem">
                   <a slot="after-title" :href="'tel:' + appoint.customer.phone" @click.stop='' >{{appoint.customer.phone}}</a>
@@ -20,10 +20,14 @@
           </scroller>
         </swiper-item>
         <swiper-item>
-          <scroller v-ref:past  lock-x :scrollbar-y="false" >
-            <div v-el:pastcontent :style="calculateWidth(appointList4week)" >
-              <group :title="day.date" v-for="day in appointList4week">
-                <cell v-for="appoint in day.appoint" :title="appoint.customer.nickname"></cell>
+          <scroller v-ref:past :use-pullup="true" :use-pulldown="true" :pullup-config="upConfig" :pulldown-config="upConfig"  lock-x :scrollbar-y="false"  @pullup:loading='doPullup()' @pulldown:loading='doPulldown()'>
+            <div v-el:aftercontent :style="calculateWidth(appointList4week.past)" >
+              <group :title="day.date" v-for="day in appointList4week.past">
+                <cell v-for="appoint in day.appoint" :title="appoint.customer.nickname"  @click="appointDetail(appoint)"  is-link>
+                  <img slot="icon" :src="appoint.customer.avatarUrl" style="width:2rem;border-radius:0.5rem">
+                  <a slot="after-title" :href="'tel:' + appoint.customer.phone" @click.stop='' >{{appoint.customer.phone}}</a>
+                  {{getTotal(appoint.appointInfo).count}}场时 |￥{{getTotal(appoint.appointInfo).price}}
+                </cell>
               </group>
             </div>
           </scroller>
@@ -71,26 +75,34 @@ export default {
       // preserves its current state and we are modifying
       // its initial state.
       msg: 'Hello World!',
-      // server: "",
-      server: "http://127.0.0.1",
-      appointList4week: [],
+      server: "",
+      // server: "http://127.0.0.1",
+      appointList4week: {after:[], past:[]},
       list:['after', 'past'],
       index:0,
+      first:true,
       detail_show:false,
       toast:{show:false, type:"success", text:""},
       loading:false,
       upConfig:{autoRefresh:false, upContent:' ', downContent:' ', content:' ', loadingContent:' ', height:30},
-      // upConfig:{},
       currentDate:{after:today, past:yesterday, today:today, yesterday:yesterday},
       editAppoint:{}
+    }
+  },
+  watch: {
+    index: function () {
+      if (this.first) {
+        this.doPulldown();
+        this.first = false;
+      }
     }
   },
   ready (){
     console.log("ready start");
     var that = this;
     that.loading = true;
-    that.$http.get(this.server + '/lantu/manager/appointList4week.json?start=' + that.currentDate.after).then(function (res) {
-      that.appointList4week = res.data.appointList4week;
+    that.$http.get(this.server + '/lantu/manager/appointList4week.json?start=' + that.currentDate.after + '&type=after').then(function (res) {
+      that.appointList4week.after = res.data.appointList4week;
       that.currentDate.after = res.data.current;
       // that.isBindPhone = res.data.isBindPhone
       that.$nextTick(() => {
@@ -164,36 +176,36 @@ export default {
     doPullup: function() {
       var that = this;
       that.loading = true;
-      that.$http.get(this.server + '/lantu/manager/appointList4week.json?start=' + that.currentDate.after).then(function (res) {
-        that.appointList4week = that.appointList4week.concat(res.data.appointList4week);
-        that.currentDate.after = res.data.current;
+      var type = this.index > 0 ? 'past' : 'after';
+      that.$http.get(this.server + '/lantu/manager/appointList4week.json?start=' + that.currentDate[this.index > 0 ? 'past' : 'after'] + '&type=' + type).then(function (res) {
+        that.appointList4week[this.index > 0 ? 'past' : 'after'] = that.appointList4week[this.index > 0 ? 'past' : 'after'].concat(res.data.appointList4week);
+        that.currentDate[this.index > 0 ? 'past' : 'after'] = res.data.current;
         that.$nextTick(() => {
-          that.$refs.after.reset()
-          that.$refs.past.reset()
+          that.$refs[this.index > 0 ? 'past' : 'after'].reset()
         });
         if (res.data.isComplete) {
-          that.$refs.after.pullup.stop();
+          that.$refs[this.index > 0 ? 'past' : 'after'].pullup.stop();
         }
-        this.$refs.after.pullup.complete();
+        this.$refs[this.index > 0 ? 'past' : 'after'].pullup.complete();
         that.loading = false;
       });
     },
     doPulldown: function () {
       var that = this;
       that.loading = true;
-      that.$http.get(this.server + '/lantu/manager/appointList4week.json?start=' + that.currentDate.today).then(function (res) {
-        that.appointList4week = res.data.appointList4week;
-        that.currentDate.after = res.data.current;
+      var type = this.index > 0 ? 'past' : 'after';
+      that.$http.get(this.server + '/lantu/manager/appointList4week.json?start=' + that.currentDate[this.index > 0 ? 'yesterday' : 'today'] + '&type=' + type).then(function (res) {
+        that.appointList4week[this.index > 0 ? 'past' : 'after'] = res.data.appointList4week;
+        that.currentDate[this.index > 0 ? 'past' : 'after'] = res.data.current;
         // that.isBindPhone = res.data.isBindPhone
-        that.$refs.after.pulldown.reset();
+        that.$refs[this.index > 0 ? 'past' : 'after'].pulldown.reset();
         that.$nextTick(() => {
-          that.$refs.after.reset()
-          that.$refs.past.reset()
+          that.$refs[this.index > 0 ? 'past' : 'after'].reset()
         });
         if (res.data.isComplete) {
-          that.$refs.after.pullup.stop();
+          that.$refs[this.index > 0 ? 'past' : 'after'].pullup.stop();
         } else {
-          that.$refs.after.pullup.restart();
+          that.$refs[this.index > 0 ? 'past' : 'after'].pullup.restart();
         }
         that.loading = false;
       });
@@ -211,6 +223,9 @@ h1 {
   background-color: #f27330 !important;
   margin: 0 0 0.2rem;
   box-shadow: 0 0 0.5rem #000;
+}
+.vux-tab-item {
+  line-height: inherit !important;
 }
 .weui_cells {
   font-size: 0.8rem

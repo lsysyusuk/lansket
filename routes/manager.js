@@ -9,13 +9,17 @@ var courtList = [1, 2, 3, 4];
 
 var appoint_model = lantuModel.appoint;
 
-var next_week = function (d) {
+var next_week = function (d, ctrl) {
   if (d) {
     d = new Date(d)
   } else {
     d = new Date()
   }
-  d = +d + 1000*60*60*24*7;
+  if (ctrl == 'after') {
+    d = +d + 1000*60*60*24*8;
+  } else if (ctrl == 'past') {
+    d = +d - 1000*60*60*24*8;
+  }
   d = new Date(d);
   var month = (d.getMonth()+1);
   var day = d.getDate();
@@ -37,9 +41,19 @@ router.get('/appointList4week.json', function(req, res, next) {
     isManager = 1;
   }
   var start = req.query.start;
-  var end = next_week(start);
-  var q = {appointDate:{$lte: end, $gte:start}};
-  appoint_model.find(q).sort('appointDate').exec(function (error, docs){
+  var type = req.query.type;
+  var end = next_week(start,type);
+  var qList, qCount, sort;
+  if (type == 'after') {
+    qList = {appointDate:{$lt: end, $gte:start}};
+    qCount = {appointDate:{$gte:end}};
+    sort = 'asc';
+  } else if (type == 'past') {
+    qList = {appointDate:{$lte: start, $gt:end}};
+    qCount = {appointDate:{$lte:end}};
+    sort = 'desc';
+  }
+  appoint_model.find(qList).sort({'appointDate':sort}).exec(function (error, docs){
     if(error){
         console.log("error: " + error);
     }else{
@@ -54,7 +68,8 @@ router.get('/appointList4week.json', function(req, res, next) {
           appointList4week.push({date:e.appointDate,appoint:[e]})
         }
       });
-      appoint_model.count({appointDate:{$gte:end}}, function(err, docs) {
+
+      appoint_model.count(qCount, function(err, docs) {
         if (err) {
           console.log(err);
         } else {

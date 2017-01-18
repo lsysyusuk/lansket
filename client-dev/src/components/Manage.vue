@@ -91,8 +91,8 @@ export default {
       // preserves its current state and we are modifying
       // its initial state.
       msg: 'Hello World!',
-      // server: "",
-      server: "http://127.0.0.1",
+      server: "",
+      // server: "http://127.0.0.1",
       weekList: weekList,
       appointList4week: [],
       list:['after', 'past'],

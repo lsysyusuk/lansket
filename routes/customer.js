@@ -109,21 +109,17 @@ router.post('/doAppoint.json', function(req, res, next) {
   var user = req.session.user;
   var date = new Date();
   var appointDate = req.body.appointDate;
-  appointDate = _.map(appointDate,function(n) {
-    n.status = 1;
-    return n;
-  })
   var insertAppoint = {customer:user, createTime:date, updateTime:date, valid:true, isPay:false};
   insertAppoint.appointDate = req.body.appointDate;
   insertAppoint.appointInfo = JSON.parse(req.body.appointInfo);
   var q = {"customer._id":user._id,"appointDate":appointDate}
-
 
   appoint_model.find(q, function (error, docs){
     if(error){
       console.log("error: " + error);
     }else{
       if (docs.length > 0) {
+        console.log(docs)
         var updateAppoint = docs[0];
         updateAppoint.appointInfo = insertAppoint.appointInfo;
         updateAppoint.save(function(err) {

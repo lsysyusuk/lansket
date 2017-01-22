@@ -36,9 +36,9 @@ var next_week = function (d, ctrl) {
 
 router.get('/appointList4week.json', function(req, res, next) {
   var user = req.session.user;
-  var isManager = 0;
+  var isManager = false;
   if (user && user.type && user.type == 1) {
-    isManager = 1;
+    isManager = true;
   }
   var start = req.query.start;
   var type = req.query.type;

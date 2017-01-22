@@ -69,6 +69,10 @@ router.get('/appointList4week.json', function(req, res, next) {
   if (user && user.phone) {
     isBindPhone = 1;
   }
+  var isManager = false;
+  if (user && user.type && user.type == 1) {
+    isManager = true;
+  }
   var start = req.query.start;
   var end = req.query.end;
   var q = {appointDate:{$lte: end, $gte:start}};
@@ -96,7 +100,7 @@ router.get('/appointList4week.json', function(req, res, next) {
         episode_court_map_week[k] = episode_court_map;
       });
 
-      res.send({"episode_court_map_week": episode_court_map_week, "appointList4week": appointList4week, isBindPhone:isBindPhone});
+      res.send({"episode_court_map_week": episode_court_map_week, "appointList4week": appointList4week, isBindPhone:isBindPhone, isManager:isManager});
     }
   });
 });

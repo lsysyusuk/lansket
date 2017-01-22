@@ -1,6 +1,6 @@
 <template>
   <div class="appoint page">
-    <x-header :left-options="{showBack: false}" :right-options="{showMore: true}" @on-click-more="toManage" >篮&nbsp;&nbsp;途</x-header>
+    <x-header :left-options="{showBack: false}" :right-options="{showMore: isManager}" @on-click-more="toManage" >篮&nbsp;&nbsp;途</x-header>
     <scroller v-ref:scroller  lock-y :scrollbar-x="false">
       <div id="scroll-content" v-el:scrollcontent :style="calculateWidth(weekList)">
         <div class="scroll-item last" @click="more_week('last')"></div>
@@ -12,7 +12,7 @@
     </scroller>
     <cell v-for="courtList in episode_court_map" :title="treatEpisode(courtList.episode)" :is-link="false" >
       <button-tab class='court-list'>
-         <button-tab-item v-for="(index, court) in courtList.courtList" :class="[treatDivide2(index) ?'court-l' : 'court-r', court.status == 2 ? 'disable' : '', court.status == 1 ? 'active' : '']"  @click='courtClick(court)' ><span>￥200</span></button-tab-item>
+         <button-tab-item v-for="(index, court) in courtList.courtList" :class="[treatDivide2(index) ?'court-l' : 'court-r', court.status == 2 ? 'disable' : '', court.status == 1 ? 'active' : '']"  @click='courtClick(court)' ><span>￥{{getPrice(courtList.episode)}}</span></button-tab-item>
       </button-tab>
     </cell>
     <cell :is-link="false" style='display: block; text-align: left'><span class='description avai'>&nbsp;&nbsp;&nbsp; </span><span style='color:#000'>可预订</span><span class='description choose'>&nbsp;&nbsp;&nbsp; </span><span style='color:#000'>选中</span><span class='description disable'>&nbsp;&nbsp;&nbsp; </span><span style='color:#000'>不可定</span></cell>
@@ -87,6 +87,7 @@ export default {
       loading:false,
       phone_show:false,
       isBindPhone:false,
+      isManager:false,
       verify:'',
       countTime:'发送验证码',
       phone: null,
@@ -112,6 +113,7 @@ export default {
       }
       that.appointJson = res.data.appointList4week[that.weekList[2].date];
       that.isBindPhone = res.data.isBindPhone
+      that.isManager = res.data.isManager
       that.loading = false;
     });
   },
@@ -317,6 +319,16 @@ export default {
     },
     toManage: function () {
       this.$router.go('/manage')
+    },
+    getPrice: function (date) {
+      var holiday = ['2017-01-27','2017-01-28','2017-01-29','2017-01-30','2017-01-31','2017-02-01','2017-02-02','2017-04-02','2017-04-03','2017-04-04','2017-04-29','2017-04-30','2017-05-01'];
+      var week = new Date(this.current_date).getDay();
+      var that = this;
+      if (parseInt(date) > 18 || week == 0 || week == 6 || _.some(holiday, function(n){return that.current_date == n})) {
+        return 300;
+      } else {
+        return 200;
+      }
     }
   }
 }

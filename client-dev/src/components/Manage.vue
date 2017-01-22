@@ -1,19 +1,19 @@
 <template>
   <div class="page manage" style="background:#fff">
-    <x-header :left-options="{showBack: true}" >篮&nbsp;&nbsp;途</x-header>
-    <div style="height:100%">
+    <x-header :left-options="{showBack: true}">篮&nbsp;&nbsp;途</x-header>
+    <div style="height:100%" :show="isManager">
        <tab :index.sync="index" v-ref:tab :line-width=2 active-color='#fc378c' style="height:2rem;">
         <tab-item  class="vux-center"  v-for="item in list">{{item}}</tab-item>
       </tab>
       <swiper :index.sync="index" v-ref:swiper height="100%" :show-dots="false"  :style="calculateWidth(appointList4week.after)" >
         <swiper-item>
-          <scroller v-ref:after :use-pullup="true" :use-pulldown="true" :pullup-config="upConfig" :pulldown-config="upConfig"  lock-x :scrollbar-y="false"  @pullup:loading='doPullup()' @pulldown:loading='doPulldown()' height="100%">
+          <scroller v-ref:after :use-pullup="true" :use-pulldown="true" :pullup-config="upConfig" :pulldown-config="upConfig"  lock-x :scrollbar-y="false"  @pullup:loading='doPullup()' @pulldown:loading='doPulldown()'>
             <div v-el:aftercontent :style="calculateWidth(appointList4week.after)" >
               <group :title="day.date" v-for="day in appointList4week.after">
                 <cell v-for="appoint in day.appoint" :title="appoint.customer.nickname"  @click="appointDetail(appoint)"  is-link>
                   <img slot="icon" :src="appoint.customer.avatarUrl" style="width:2rem;border-radius:0.5rem">
                   <a slot="after-title" :href="'tel:' + appoint.customer.phone" @click.stop='' >{{appoint.customer.phone}}</a>
-                  {{getTotal(appoint.appointInfo).count}}场时 |￥{{getTotal(appoint.appointInfo).price}}
+                  {{getTotal(appoint).count}}场时 |￥{{getTotal(appoint).price}}
                 </cell>
               </group>
               <div v-show='appointList4week.after.length == 0' style="padding-top:2rem; color:#f27330; text-align: center;">
@@ -25,12 +25,12 @@
         </swiper-item>
         <swiper-item>
           <scroller v-ref:past :use-pullup="true" :use-pulldown="true" :pullup-config="upConfig" :pulldown-config="upConfig"  lock-x :scrollbar-y="false"  @pullup:loading='doPullup()' @pulldown:loading='doPulldown()'>
-            <div v-el:aftercontent :style="calculateWidth(appointList4week.past)" >
+            <div v-el:beforecontent :style="calculateWidth(appointList4week.past)" >
               <group :title="day.date" v-for="day in appointList4week.past">
                 <cell v-for="appoint in day.appoint" :title="appoint.customer.nickname"  @click="appointDetail(appoint)"  is-link>
                   <img slot="icon" :src="appoint.customer.avatarUrl" style="width:2rem;border-radius:0.5rem">
                   <a slot="after-title" :href="'tel:' + appoint.customer.phone" @click.stop='' >{{appoint.customer.phone}}</a>
-                  {{getTotal(appoint.appointInfo).count}}场时 |￥{{getTotal(appoint.appointInfo).price}}
+                  {{getTotal(appoint).count}}场时 |￥{{getTotal(appoint).price}}
                 </cell>
               </group>
               <div v-show='appointList4week.past.length == 0' style="padding-top:2rem; color:#f27330; text-align: center;">
@@ -41,6 +41,10 @@
           </scroller>
         </swiper-item>
       </swiper>
+    </div>
+    <div :show='isManager' style="padding-top:2rem; color:#f27330; text-align: center;">
+                <icon  type="info" class="icon_big"></icon>
+                <p>抱歉，您没有权限</p>
     </div>
     <confirm :show.sync="detail_show" :cancel-text="'取消'" :confirm-text="'确认'" title="预约详情" @on-confirm="doSaveAppoint()" >
       <group>
@@ -92,6 +96,7 @@ export default {
       first:true,
       detail_show:false,
       toast:{show:false, type:"success", text:""},
+      isManager:false,
       loading:false,
       upConfig:{autoRefresh:false, upContent:' ', downContent:' ', content:' ', loadingContent:' ', height:30},
       currentDate:{after:today, past:yesterday, today:today, yesterday:yesterday},
@@ -113,10 +118,11 @@ export default {
     that.$http.get(this.server + '/lantu/manager/appointList4week.json?start=' + that.currentDate.after + '&type=after').then(function (res) {
       that.appointList4week.after = res.data.appointList4week;
       that.currentDate.after = res.data.current;
-      // that.isBindPhone = res.data.isBindPhone
+      that.isManager = res.data.isManager;
+      console.log()
+      that.$refs.after.reset()
       that.$nextTick(() => {
         that.$refs.after.reset()
-        that.$refs.past.reset()
       });
       if (res.data.isComplete) {
         that.$refs.after.pullup.stop();
@@ -143,13 +149,19 @@ export default {
     },
     calculateWidth: function (appointList4week) {
       var hn = _.reduce(appointList4week,function (m,n) {
-        return m + (n.appoint.length * 4 + 2);
+        return m + (n.appoint.length * 3.6 + 2.4);
       },0);
       return "height:" + hn + "rem; min-height: 100%;";
     },
-    getTotal: function (ecList) {
-      var court = _.reduce(ecList, function (m,n) {
-        return {count:(m.count + 2), price:(m.price + 200)}
+    getTotal: function (appoint) {
+      var holiday = ['2017-01-27','2017-01-28','2017-01-29','2017-01-30','2017-01-31','2017-02-01','2017-02-02','2017-04-02','2017-04-03','2017-04-04','2017-04-29','2017-04-30','2017-05-01'];
+      var court = _.reduce(appoint.appointInfo, function (m,n) {
+        var _p = 200;
+        var week = new Date(appoint.appointDate).getDay();
+        if (week == 0 || week == 6 || m.episode > 18 || _.some(holiday, function(n){return appoint.appointDate == n})) {
+          _p = 300;
+        }
+        return {count:(m.count + 2), price:(m.price + _p)}
       },{count:0, price:0})
       return court;
     },

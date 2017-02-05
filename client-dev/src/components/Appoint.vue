@@ -161,12 +161,14 @@ export default {
       var that = this;
       that.loading = true;
       this.$http.post(this.server + '/lantu/customer/doAppoint.json',{appointDate:this.current_date, appointInfo: JSON.stringify(this.appointInfo)}).then(function (res) {
-        that.episode_court_map_week[that.current_date] = that.episode_court_map;
-
-        that.toast.text = "预约成功";
-        that.toast.type = "success";
-        that.toast.show = true;
         that.loading = false;
+        if (res.data.status == 0) {
+          that.doToast(res.data.msg, "warn");
+        } else if(res.data.status == 1) {
+          that.episode_court_map_week[that.current_date] = that.episode_court_map;
+
+          that.doToast("预约成功", "success")
+        }
       });
     },
     calculateWidth: function (weekList) {

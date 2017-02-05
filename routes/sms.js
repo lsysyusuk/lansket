@@ -5,6 +5,8 @@ var mongoose = require("mongoose");
 var router = express.Router();
 var md5 = require('MD5'); //MD5模块
 var https = require('https'); //https模块 用来发送异步请求
+var logger = require('../logHelper').helper;  
+
 
 //补位
 var pad = function (s, c) {
@@ -18,7 +20,7 @@ var user_model = lantuModel.user;
 
 var creatSid = function (phone, date, code, count, callback) {
   if (count > 0) {
-    console.log("重新发送验证码" + count + "次");
+    logger.writeInfo("重新发送验证码" + count + "次");
   }
   try {
     var accountSid = config.sms.accountSid;
@@ -64,11 +66,11 @@ var creatSid = function (phone, date, code, count, callback) {
           body += data;
         }).on('end', function () { //获取返回数据
           body = JSON.parse(body);
-          console.log(body)
+          logger.writeInfo(body)
           if (body.statusCode == 000000) {
             return callback(body);
           } else {
-            console.log("短信发送失败，状态码:" + body.statusCode);
+            logger.writeInfo("短信发送失败，状态码:" + body.statusCode);
             return callback("error");
           }
         });
@@ -83,7 +85,7 @@ var creatSid = function (phone, date, code, count, callback) {
     req.write(data); //发送 POST数据包
     req.end(); //发送结束
   } catch (err) {
-    console.log(err)
+    logger.writeErr(err)
   }
 }
   
@@ -91,7 +93,7 @@ var creatSid = function (phone, date, code, count, callback) {
 router.get('/sendCode', function (req, res, next) {
   if (req.session.verifyCode && req.session.verifyLimit) {
     if (req.session.verifyLimit > new Date().getTime()) {
-      console.log("hit code delay lock");
+      logger.writeErr("hit code delay lock");
       return res.send({status:0, msg:"请在发送验证码60s后重发"});
     }
   } 
@@ -101,7 +103,7 @@ router.get('/sendCode', function (req, res, next) {
 
   creatSid(phone, _date, code, 0, function (body) {
     if (body == 'error') {
-      console.log("验证码发送失败");
+      logger.writeErr("验证码发送失败");
       res.send({status:0, msg:"发送失败，请联系工作人员"});
     } else {
       req.session.phone = phone;
@@ -114,23 +116,22 @@ router.get('/sendCode', function (req, res, next) {
 
 //验证
 router.get('/verifyCode', function (req, res, next) {
-  console.log('verifyCode');
   var sUser = req.session.user;
   var phone = req.session.phone
   var code = req.query.code;
   if (req.session.verifyCode && req.session.verifyLimit && phone) {
     if (req.session.verifyLimit  + 60000 < new Date().getTime()) {
-      console.log("hit code delay lock");
+      logger.writeErr("hit code delay lock");
       return res.send({status:0, msg:"验证码已过期，请重新发送"});
     } 
     if (req.session.verifyCode.toString() != code) {
-      console.log("error verify code");
+      logger.writeErr("error verify code");
       return res.send({status:0, msg:"验证码错误"});
     } 
     var q = {_id: mongoose.Types.ObjectId(sUser._id)};
       user_model.find(q, function (error, docs) {
         if (error) {
-          console.log("error:" + error);
+          logger.writeErr("error:" + error);
         } else {
           if (docs.length <= 0) {
             res.send({status:0, msg:"账户信息有误"});
@@ -138,9 +139,8 @@ router.get('/verifyCode', function (req, res, next) {
             var updateUser = docs[0];
             var q = {phone:phone};
             user_model.find(q, function (error, docs) {
-              console.log(docs);
               if (error) {
-                console.log("error:" + error);
+                logger.writeErr("error:" + error);
               } else {
                 if (docs.length > 0) {
                   res.send({status:0, msg:"该手机号已绑定账户"});
@@ -148,7 +148,7 @@ router.get('/verifyCode', function (req, res, next) {
                   updateUser.phone = phone;
                   updateUser.save(function(err, _resultDoc) {
                     if (err) {
-                      console.log("error:" + error);
+                      logger.writeErr("error:" + error);
                       res.send({status:0, msg:"该手机号已绑定账户"});
                     } else {
                       delete req.session.phone;
@@ -174,14 +174,9 @@ router.get('/verifyCode', function (req, res, next) {
 router.get('/test', function (req, res, next) {
   var phone = req.query.phone;
   var sUser = req.session.user;
-  // user_model.find({phone:phone}, function (error, docs) {
-  //   console.log(error)
-  //   console.log(docs)
-  //   res.send(docs)
-  // });
   var q = {_id: mongoose.Types.ObjectId(sUser._id)};
   var updateUser = new user_model(q);
-  console.log(updateUser)
+  logger.writeInfo(updateUser)
   updateUser.save(function(err) {
     if (err) {
       res.send({status:0})

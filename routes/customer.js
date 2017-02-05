@@ -3,6 +3,8 @@ var router = express.Router();
 var lantuModel = require('../model');
 var mongoose = require("mongoose");
 var _ = require('underscore');
+var logger = require('../logHelper').helper;  
+
 
 var episodeList = [10, 12, 14, 16, 18, 20];
 var courtList = [1, 2, 3, 4];
@@ -46,7 +48,7 @@ router.get('/appointList.json', function(req, res, next) {
 	}
 	appoint_model.find(q, function (error, docs){
   	if(error){
-     		console.log("error: " + error);
+     		logger.writeErr("error: " + error);
   	}else{
       var episode_court_map = _.map(episodeList, function (_episode) {
         return {"episode" : _episode, "courtList" : _.map(courtList, function (_court) {
@@ -114,32 +116,56 @@ router.post('/doAppoint.json', function(req, res, next) {
   insertAppoint.appointInfo = JSON.parse(req.body.appointInfo);
   var q = {"customer._id":user._id,"appointDate":appointDate}
 
-  appoint_model.find(q, function (error, docs){
-    if(error){
-      console.log("error: " + error);
-    }else{
-      if (docs.length > 0) {
-        console.log(docs)
-        var updateAppoint = docs[0];
-        updateAppoint.appointInfo = insertAppoint.appointInfo;
-        updateAppoint.save(function(err) {
-          if (err) {
-            res.send('fail');
-          } else {
-            res.send('success');
-          }
-        })
+  var validateJson = {appointInfo:{$elemMatch:{$or:[]}}};
+  validateJson.appointInfo.$elemMatch.$or = insertAppoint.appointInfo;
+  validateJson.appointDate = appointDate;
+  // validateJson.customer = {};
+  // validateJson.customer._id = mongoose.Types.ObjectId(user._id);
+  console.log(JSON.stringify(validateJson));
+
+  appoint_model.find(validateJson, function (error, docs) {
+    if (error) {
+      logger.writeErr(error);
+    } else {
+      logger.writeInfo(docs);
+      var validateResult = _.some(docs, function (n) {
+        return n.customer._id.toString() != user._id.toString();
+      })
+      if (validateResult) {
+        logger.writeInfo('预约场次重复');
+        return res.send({status:0,msg:"预约场次重复，请刷新后重试"});
       } else {
-        new appoint_model(insertAppoint).save(function(err) {
-          if (err) {
-            res.send('fail');
-          } else {
-            res.send('success');
+        appoint_model.find(q, function (error, docs){
+          if(error){
+            console.log("error: " + error);
+          }else{
+            if (docs.length > 0) {
+              // console.log(docs)
+              var updateAppoint = docs[0];
+              updateAppoint.appointInfo = insertAppoint.appointInfo;
+              updateAppoint.save(function(err) {
+                if (err) {
+                  return res.send({status:0});
+                } else {
+                  return res.send({status:1});
+                }
+              })
+            } else {
+              new appoint_model(insertAppoint).save(function(err) {
+                if (err) {
+                  return res.send({status:0});
+                } else {
+                  return res.send({status:1});
+                }
+              })
+            }
           }
-        })
+        });
       }
     }
   });
+
+  
 
   
 })

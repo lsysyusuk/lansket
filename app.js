@@ -1,7 +1,7 @@
 var express = require('express');
 var path = require('path');
 var favicon = require('serve-favicon');
-var logger = require('morgan');
+// var logger = require('morgan');
 var session = require('express-session');
 var cookieParser = require('cookie-parser');
 var MongoStore = require('connect-mongo')(session);
@@ -19,6 +19,9 @@ var mongoose = require("mongoose");
 
 
 var app = express();
+var log = require('./logHelper');  
+var logger = log.helper;  
+log.use(app); 
 
 // view engine setup
 // app.set('views', path.join(__dirname, 'views'));
@@ -27,7 +30,7 @@ app.engine('html', hbs.__express);
 
 // uncomment after placing your favicon in /public
 app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
-app.use(logger('dev'));
+// app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
@@ -40,9 +43,9 @@ mongoose.Promise = global.Promise;
 mongoose.connect('mongodb://'+ config.db.username +':'+ config.db.password +'@'+ config.db.host +':'+ config.db.port +'/'+ config.db.database);
 
 mongoose.connection.on("error", function (error){
-    console.log("连接数据库失败"+error);
+    logger.writeErr("连接数据库失败"+error);
 }).on("open", function (){
-    console.log("数据库连接成功！！！");
+    logger.writeInfo("数据库连接成功！！！");
 });
 
 // mongo end
@@ -71,16 +74,17 @@ app.use(function (req, res, next) {
     var url = req.originalUrl;//获取url
     req.session.redirectUrl = url;
 
-    // req.session.user = {valid: 1,
-    //   wechatOpenid: 'okIULwm_4RyQd779dYI4cCYFzwbU',
-    //   nickname: 'syusuk',
-    //   country: '中国',
-    //   province: '北京',
-    //   city: '丰台',
-    //   phone: 15620517445,
-    //   avatarUrl: 'http://wx.qlogo.cn/mmopen/xPKCxELaaj6xJFcfBibjR6FksibCP33Ns7nyx4j8OXgnyRTHwC1xWtL8dRy5dcMbmWRlfj7tpwGMB3jxTgsujLVRIBC01h49ibia/0',
-    //   _id: mongoose.Types.ObjectId('58788d8774957b14a31bb0dd')
-    // };
+    req.session.user = {valid: 1,
+      wechatOpenid: 'okIULwm_4RyQd779dYI4cCYFzwbU',
+      nickname: 'syusuk',
+      country: '中国',
+      province: '北京',
+      city: '丰台',
+      phone: 15620517445,
+      avatarUrl: 'http://wx.qlogo.cn/mmopen/xPKCxELaaj6xJFcfBibjR6FksibCP33Ns7nyx4j8OXgnyRTHwC1xWtL8dRy5dcMbmWRlfj7tpwGMB3jxTgsujLVRIBC01h49ibia/0',
+      _id: mongoose.Types.ObjectId('58788d8774957b14a31bb0dd'),
+      type:1
+    };
 
     if(!req.session.user){
       var redUrl = "http://"+ config.domain +"/lantu/oauth/login";

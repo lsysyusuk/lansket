@@ -3,6 +3,8 @@ var router = express.Router();
 var lantuModel = require('../model');
 var mongoose = require("mongoose");
 var _ = require('underscore');
+var logger = require('../logHelper').helper;  
+
 
 var episodeList = [10, 12, 14, 16, 18, 20];
 var courtList = [1, 2, 3, 4];
@@ -55,7 +57,7 @@ router.get('/appointList4week.json', function(req, res, next) {
   }
   appoint_model.find(qList).sort({'appointDate':sort}).exec(function (error, docs){
     if(error){
-        console.log("error: " + error);
+        logger.writeErr("error: " + error);
     }else{
       var appointList4week = [];
       _.each(docs, function(e) {
@@ -71,7 +73,7 @@ router.get('/appointList4week.json', function(req, res, next) {
 
       appoint_model.count(qCount, function(err, docs) {
         if (err) {
-          console.log(err);
+          logger.writeErr(err);
         } else {
           if (docs > 0) {
             return res.send({"appointList4week": appointList4week, isManager:isManager, isComplete:false, current:end});
@@ -93,7 +95,7 @@ router.post('/updateAppoint.json', function(req, res, next) {
   
   appoint_model.update({_id:appoint._id},{$set:{valid:appoint.valid, isPay:appoint.isPay, appointInfo:appoint.appointInfo}}, function(err) {
     if (err) {
-      console.log(err);
+      logger.writeErr(err);
       res.send({status:0});
     } else {
       res.send({status:1})

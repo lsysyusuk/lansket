@@ -33,7 +33,11 @@ var appoint_schema = new mongoose.Schema({
     createTime : Date,
     updateTime : Date,
     appointDate: String,
-    appointInfo : [appoint_info_schema],
+    appointInfo : [{
+  episode : Number,
+  court : Number,
+  status : Boolean
+}],
     valid : Boolean,
     isPay : Boolean
 },{collection: "appoint"});

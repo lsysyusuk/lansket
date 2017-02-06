@@ -13,9 +13,12 @@
 
 <style lang="less">
 @import '~vux/src/styles/reset';
+@import '~font-awesome/less/font-awesome';
 
 </style>
 <style>
+/*@import '~font-awesome/css/font-awesome.min.css'*/
+
 html {
   height: 100%
 }

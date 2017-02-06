@@ -13,7 +13,7 @@
                 <cell v-for="appoint in day.appoint" :title="appoint.customer.nickname"  @click="appointDetail(appoint)"  is-link>
                   <img slot="icon" :src="appoint.customer.avatarUrl" style="width:2rem;border-radius:0.5rem">
                   <a slot="after-title" :href="'tel:' + appoint.customer.phone" @click.stop='' >{{appoint.customer.phone}}</a>
-                  {{getTotal(appoint).count}}场时 |￥{{getTotal(appoint).price}}
+                  <i class="fa-i fa fa-money" :class="appoint.isPay ? 'main-color' : ''"  aria-hidden="true"></i><i class="fa-i fa fa-check-square-o" :class="appoint.valid ? 'main-color' : ''" aria-hidden="true"></i>{{getTotal(appoint).count}}场时 |￥{{getTotal(appoint).price}}
                 </cell>
               </group>
               <div v-show='appointList4week.after.length == 0' style="padding-top:2rem; color:#f27330; text-align: center;">
@@ -310,8 +310,18 @@ a {
   transform: rotate(180deg);
   -webkit-transform: rotate(180deg); 
 }
+.xs-plugin-pullup-undefined {
+  display: none
+}
 .icon_big.weui_icon_info:before {
   font-size: 5rem;
+  color: #f27330;
+}
+.fa-i {
+  margin-right: 0.2rem;
+  font-size: 1rem;
+}
+.main-color {
   color: #f27330;
 }
 </style>

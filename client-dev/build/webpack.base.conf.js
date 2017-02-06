@@ -59,7 +59,7 @@ module.exports = {
         loader: 'url',
         query: {
           limit: 10000,
-          name: utils.assetsPath('fonts/[name].[hash:7].[ext]')
+          name: utils.assetsPath('lantu/fonts/[name].[hash:7].[ext]')
         }
       }
     ]

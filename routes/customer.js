@@ -77,7 +77,7 @@ router.get('/appointList4week.json', function(req, res, next) {
   }
   var start = req.query.start;
   var end = req.query.end;
-  var q = {appointDate:{$lte: end, $gte:start}};
+  var q = {appointDate:{$lte: end, $gte:start},valid:true};
   appoint_model.find(q, function (error, docs){
     if(error){
         console.log("error: " + error);

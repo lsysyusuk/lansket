@@ -119,6 +119,7 @@ router.post('/doAppoint.json', function(req, res, next) {
   var validateJson = {appointInfo:{$elemMatch:{$or:[]}}};
   validateJson.appointInfo.$elemMatch.$or = insertAppoint.appointInfo;
   validateJson.appointDate = appointDate;
+  validateJson.valid = true;
   // validateJson.customer = {};
   // validateJson.customer._id = mongoose.Types.ObjectId(user._id);
   console.log(JSON.stringify(validateJson));

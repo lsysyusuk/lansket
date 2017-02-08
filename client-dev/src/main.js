@@ -4,6 +4,8 @@ import Appoint from './components/Appoint'
 import Manage from './components/Manage'
 import VueResource from 'vue-resource'
 import VueRouter from 'vue-router'
+import filters from './filters'
+Object.keys(filters).forEach((k) => Vue.filter(k, filters[k]))
 
 const FastClick = require('fastclick')
 FastClick.attach(document.body)

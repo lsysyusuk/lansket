@@ -30,7 +30,7 @@
                 <cell v-for="appoint in day.appoint" :title="appoint.customer.nickname"  @click="appointDetail(appoint)"  is-link>
                   <img slot="icon" :src="appoint.customer.avatarUrl" style="width:2rem;border-radius:0.5rem">
                   <a slot="after-title" :href="'tel:' + appoint.customer.phone" @click.stop='' >{{appoint.customer.phone}}</a>
-                  {{getTotal(appoint).count}}场时 |￥{{getTotal(appoint).price}}
+                  <i class="fa-i fa fa-money" :class="appoint.isPay ? 'main-color' : ''"  aria-hidden="true"></i><i class="fa-i fa fa-check-square-o" :class="appoint.valid ? 'main-color' : ''" aria-hidden="true"></i>{{getTotal(appoint).count}}场时 |￥{{getTotal(appoint).price}}
                 </cell>
               </group>
               <div v-show='appointList4week.past.length == 0' style="padding-top:2rem; color:#f27330; text-align: center;">
@@ -47,6 +47,7 @@
                 <p>抱歉，您没有权限</p>
     </div>
     <confirm :show.sync="detail_show" :cancel-text="'取消'" :confirm-text="'确认'" title="预约详情" @on-confirm="doSaveAppoint()" >
+      <cell style='height: 1rem !important; margin-top:0 !important'><i class="fa-i fa fa-clock-o"  aria-hidden="true"></i>{{editAppoint.createTime | formateDateTime}}</cell>
       <group>
         <switch class='pay-valid' :title="'支付:' + (editAppoint.isPay ? '是' : '否')"  :value.sync="editAppoint.isPay"></switch>
         <switch class='pay-valid' :title="'状态:' + (editAppoint.valid ? '有效' : '无效')"  :value.sync="editAppoint.valid"></switch>
@@ -323,5 +324,9 @@ a {
 }
 .main-color {
   color: #f27330;
+}
+.weui_dialog_bd {
+  max-height: 15rem;
+  overflow-y: scroll;
 }
 </style>

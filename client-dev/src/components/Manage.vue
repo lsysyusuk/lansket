@@ -56,13 +56,11 @@
         <switch  :title="treatEpisode(ec.episode) + ' | ' + ec.court + '号场' + (ec.status == 1 ? '(有效)' : '(失效)')" :title="ec.status ? '有效' : '失效'" :value.sync="ec.status"></switch>
       </group>
     </confirm>
-    <toast :show.sync="toast.show" :text="toast.text" :type="toast.type"></toast>
-    <loading :show.sync="loading" :text="'加载中'"></loading>
   </div>
 </template>
 
 <script>
-import {XHeader, Tab, TabItem, Swiper, SwiperItem, Scroller, Group, Cell, Confirm, Switch, Toast, Loading, Icon} from 'vux/src/components';
+import {XHeader, Tab, TabItem, Swiper, SwiperItem, Scroller, Group, Cell, Confirm, Switch, Icon} from 'vux/src/components';
 import { _ } from 'underscore/underscore-min';
 export default {
   components: {
@@ -76,8 +74,6 @@ export default {
     Cell,
     Confirm,
     Switch,
-    Toast,
-    Loading,
     Icon
   },
   data () {
@@ -115,8 +111,8 @@ export default {
   ready (){
     console.log("ready start");
     var that = this;
-    that.loading = true;
-    that.$http.get(this.server + '/lantu/manager/appointList4week.json?start=' + that.currentDate.after + '&type=after').then(function (res) {
+    that.$root.loading = true;
+    that.$http.get(this.$root.server + '/lantu/manager/appointList4week.json?start=' + that.currentDate.after + '&type=after').then(function (res) {
       that.appointList4week.after = res.data.appointList4week;
       that.currentDate.after = res.data.current;
       that.isManager = res.data.isManager;
@@ -128,7 +124,7 @@ export default {
       if (res.data.isComplete) {
         that.$refs.after.pullup.stop();
       }
-      that.loading = false;
+      that.$root.loading = false;
     });
   },
   methods: {
@@ -173,14 +169,14 @@ export default {
     doSaveAppoint: function () {
       var that = this;
       var appoint = JSON.stringify(this.editAppoint)
-      that.loading = true;
-      this.$http.post(this.server + '/lantu/manager/updateAppoint.json', {appoint:appoint}).then(function(res) {
+      that.$root.loading = true;
+      this.$http.post(this.$root.server + '/lantu/manager/updateAppoint.json', {appoint:appoint}).then(function(res) {
         if (res.data.status == 1) {
           that.doToast("修改成功")
         } else {
           that.doToast("修改失败","warn")
         }
-        that.loading = false;
+        that.$root.loading = false;
       })
     },
     treatEpisode: function(num) {
@@ -197,9 +193,9 @@ export default {
     },
     doPullup: function() {
       var that = this;
-      that.loading = true;
+      that.$root.loading = true;
       var type = this.index > 0 ? 'past' : 'after';
-      that.$http.get(this.server + '/lantu/manager/appointList4week.json?start=' + that.currentDate[this.index > 0 ? 'past' : 'after'] + '&type=' + type).then(function (res) {
+      that.$http.get(this.$root.server + '/lantu/manager/appointList4week.json?start=' + that.currentDate[this.index > 0 ? 'past' : 'after'] + '&type=' + type).then(function (res) {
         that.appointList4week[this.index > 0 ? 'past' : 'after'] = that.appointList4week[this.index > 0 ? 'past' : 'after'].concat(res.data.appointList4week);
         that.currentDate[this.index > 0 ? 'past' : 'after'] = res.data.current;
         that.$nextTick(() => {
@@ -209,14 +205,14 @@ export default {
           that.$refs[this.index > 0 ? 'past' : 'after'].pullup.stop();
         }
         this.$refs[this.index > 0 ? 'past' : 'after'].pullup.complete();
-        that.loading = false;
+        that.$root.loading = false;
       });
     },
     doPulldown: function () {
       var that = this;
-      that.loading = true;
+      that.$root.loading = true;
       var type = this.index > 0 ? 'past' : 'after';
-      that.$http.get(this.server + '/lantu/manager/appointList4week.json?start=' + that.currentDate[this.index > 0 ? 'yesterday' : 'today'] + '&type=' + type).then(function (res) {
+      that.$http.get(this.$root.server + '/lantu/manager/appointList4week.json?start=' + that.currentDate[this.index > 0 ? 'yesterday' : 'today'] + '&type=' + type).then(function (res) {
         that.appointList4week[this.index > 0 ? 'past' : 'after'] = res.data.appointList4week;
         that.currentDate[this.index > 0 ? 'past' : 'after'] = res.data.current;
         // that.isBindPhone = res.data.isBindPhone
@@ -229,7 +225,7 @@ export default {
         } else {
           that.$refs[this.index > 0 ? 'past' : 'after'].pullup.restart();
         }
-        that.loading = false;
+        that.$root.loading = false;
       });
     }
   }

@@ -25,21 +25,14 @@
           <span v-for='court in episode.courtList' style="padding-left: 0.3rem"><font color="red">{{court}}</font>号场</span>
         </div>
       </confirm>
-      <confirm :show.sync="phone_show" :cancel-text="'取消'" :confirm-text="'确认'" :title="'手机绑定'" @on-confirm="doBindPhone(phone,verifyCode)" >
-        <input type="text" placeholder="手机号" v-model="phone" style="width: 90%; border: 1px solid #a0a0a0; border-radius: .25rem; height: 1.6rem; padding-left: 0.5rem;" />
-        <div style="margin-top: 1rem;">
-          <input type="text" placeholder="验证码" v-model="verifyCode" style="width: 40%; border: 1px solid #a0a0a0; border-radius: .25rem; height: 1.6rem; padding-left: 0.5rem; margin-right: 9%;" />
-          <x-button mini type="primary" :disabled="!isNaN(countTime)" style="width:40%; font-size: 0.8rem" @click='doSendCode(phone)'>{{verify}}{{countTime}}</x-button>
-        </div>
-      </confirm>
-      <toast :show.sync="toast.show" :text="toast.text" :type="toast.type"></toast>
-      <loading :show.sync="loading" :text="'加载中'"></loading>
+      <message-dialog :phone_show.sync='phone_show' @bind-success='doAppoint' ></message-dialog>
     </div>
   </div>
 </template>
 
 <script>
-import {XHeader, Group, Cell, ButtonTab, ButtonTabItem, XButton, Confirm, Scroller, Toast, Loading, XInput} from 'vux/src/components';
+import {XHeader, Group, Cell, ButtonTab, ButtonTabItem, XButton, Confirm, Scroller, XInput} from 'vux/src/components';
+import MessageDialog from './message-dialog/index.vue'
 import { _ } from 'underscore/underscore-min';
 export default {
   components: {
@@ -51,9 +44,8 @@ export default {
     XButton,
     Confirm,
     Scroller,
-    Toast,
-    Loading,
-    XInput
+    XInput,
+    MessageDialog
   },
   data: function (){
     console.log("data start");
@@ -79,12 +71,10 @@ export default {
       weekList: weekList,
       current_date: weekList[2].date,
       show: false,
-      server: "",
-      // server: "http://127.0.0.1",
+      // server: "",
+      server: "http://127.0.0.1",
       appointText:[],
       appointInfo:[],
-      toast:{show:false, type:"success", text:""},
-      loading:false,
       phone_show:false,
       isBindPhone:false,
       isManager:false,
@@ -98,13 +88,8 @@ export default {
   ready (){
     console.log("ready start");
     var that = this;
-    that.loading = true;
-    // that.$http.get(this.server + '/lantu/customer/appointList.json?date=' + that.weekList[0].date).then(function (res) {
-    //   that.episode_court_map = res.data.episode_court_map;
-    //   that.appointJson = res.data.appointJson;
-    //   that.loading = false;
-    // });
-    that.$http.get(this.server + '/lantu/customer/appointList4week.json?start=' + that.weekList[0].date + '&end=' +  that.weekList[6].date).then(function (res) {
+    that.$root.loading = true;
+    that.$http.get(this.$root.server + '/lantu/customer/appointList4week.json?start=' + that.weekList[0].date + '&end=' +  that.weekList[6].date).then(function (res) {
       that.episode_court_map_week = res.data.episode_court_map_week;
       that.appointList4week = res.data.appointList4week;
       that.episode_court_map = res.data.episode_court_map_week[that.weekList[2].date];
@@ -114,7 +99,7 @@ export default {
       that.appointJson = res.data.appointList4week[that.weekList[2].date];
       that.isBindPhone = res.data.isBindPhone
       that.isManager = res.data.isManager
-      that.loading = false;
+      that.$root.loading = false;
     });
   },
   methods: {
@@ -153,21 +138,21 @@ export default {
       if (appointInfo.length > 0) {
         this.show = true;
       } else {
-        this.doToast("请选择场地~", "warn");
+        this.$root.$emit('doToast', "请选择场地~", "warn");
       }
       
     },
     doAppointConfirm: function () {
       var that = this;
-      that.loading = true;
-      this.$http.post(this.server + '/lantu/customer/doAppoint.json',{appointDate:this.current_date, appointInfo: JSON.stringify(this.appointInfo)}).then(function (res) {
-        that.loading = false;
+      that.$root.loading = true;
+      this.$http.post(this.$root.server + '/lantu/customer/doAppoint.json',{appointDate:this.current_date, appointInfo: JSON.stringify(this.appointInfo)}).then(function (res) {
+        that.$root.loading = false;
         if (res.data.status == 0) {
-          that.doToast(res.data.msg, "warn");
+          that.$root.$emit('doToast', res.data.msg, "warn");
         } else if(res.data.status == 1) {
           that.episode_court_map_week[that.current_date] = that.episode_court_map;
 
-          that.doToast("预约成功", "success")
+          that.$root.$emit('doToast', "预约成功", "success")
         }
       });
     },
@@ -251,11 +236,11 @@ export default {
         _end = that.weekList[that.weekList.length - 1].date;
       }
 
-      that.loading = true;
-      that.$http.get(this.server + '/lantu/customer/appointList4week.json?start=' + _start + '&end=' +  _end).then(function (res) {
+      that.$root.loading = true;
+      that.$http.get(this.$root.server + '/lantu/customer/appointList4week.json?start=' + _start + '&end=' +  _end).then(function (res) {
         that.episode_court_map_week = _.extend(that.episode_court_map_week,res.data.episode_court_map_week);
         that.appointList4week = _.extend(that.appointList4week,res.data.appointList4week);
-        that.loading = false;
+        that.$root.loading = false;
       });
     },
     doSendCode: function (phone) {
@@ -264,14 +249,14 @@ export default {
       }
       var re_phone = /\d{11}/;
       if (!re_phone.test(phone)) {
-        return this.doToast("您输入的手机号有误", "warn");
+        return this.$root.$emit('doToast',"您输入的手机号有误", "warn");
       }
       var that = this;
       
-      this.loading = true;
-      that.$http.get(this.server + '/lantu/verifyPhone/sendCode?phone=' + phone).then(function (res) {
+      this.$root.loading = true;
+      that.$http.get(this.$root.server + '/lantu/verifyPhone/sendCode?phone=' + phone).then(function (res) {
         if (res.data.status == 0) {
-          that.doToast(res.data.msg, "warn");
+          that.$root.$emit('doToast', res.data.msg, "warn");
         } if (res.data.status == 1) {
           that.verify = '已发送:';
           that.countTime = 60;
@@ -284,40 +269,35 @@ export default {
             }
           }, 1000);
         }
-        that.loading = false;
+        that.$root.loading = false;
       });
 
       
     },
     doBindPhone: function(phone, code) {
       if (isNaN(this.countTime)) {
-        return this.doToast("请先发送验证码", "warn");
+        return this.$root.$emit('doToast', "请先发送验证码", "warn");
       }
       var re_phone = /\d{11}/;
       if (!re_phone.test(phone)) {
-        return this.doToast("您输入的手机号有误", "warn");
+        return this.$root.$emit('doToast', "您输入的手机号有误", "warn");
       }
       if (!code) {
-        return this.doToast("请填写验证码", "warn");
+        return this.$root.$emit('doToast', "请填写验证码", "warn");
       }
       var that = this;
-      that.loading = true;
-      that.$http.get(this.server + '/lantu/verifyPhone/verifyCode?phone=' + phone + '&code=' + code).then(function (res) {
+      that.$root.loading = true;
+      that.$http.get(this.$root.server + '/lantu/verifyPhone/verifyCode?phone=' + phone + '&code=' + code).then(function (res) {
         if (res.data.status == 0) {
-          that.doToast(res.data.msg, "warn");
+          that.$root.$emit('doToast', res.data.msg, "warn");
         } else if (res.data.status == 1) {
           that.phone_show = false;
           that.isBindPhone = true;
           that.doAppoint();
         }
-        that.loading = false;
+        that.$root.loading = false;
       });
 
-    },
-    doToast: function(text, type) {
-        this.toast.text = text;
-        this.toast.type = type;
-        this.toast.show = true;
     },
     toManage: function () {
       this.$router.go('/manage')

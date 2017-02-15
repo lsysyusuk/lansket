@@ -1,12 +1,38 @@
 <template>
   <div >
     <!-- <transition name="fade"> -->
-      <router-view keep-alive transition transition-mode="out-in"></router-view>
+      <router-view @upup='doToast()' keep-alive transition transition-mode="out-in"></router-view>
     <!-- </transition> -->
+      <toast :show.sync="toast.show" :text="toast.text" :type="toast.type"></toast>
+      <loading :show.sync="loading" :text="'加载中'"></loading>
   </div>
 </template>
 
-<script >
+<script>
+import {Toast, Loading} from 'vux/src/components';
+export default {
+  components: {
+    Toast,
+    Loading
+  },
+  data: function () {
+    return {
+      toast:{show:false, type:"success", text:""},
+      loading:false,
+      // server: "",
+      server: "http://127.0.0.1",
+    }
+  },
+  events: {
+    doToast: function(text, type) {
+      this.toast.text = text;
+      if (type && type.length > 0) {
+        this.toast.type = type;
+      }
+      this.toast.show = true;
+    },
+  }
+}
  
 </script>
 

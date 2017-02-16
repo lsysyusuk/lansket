@@ -94,7 +94,6 @@ export default {
       detail_show:false,
       toast:{show:false, type:"success", text:""},
       isManager:false,
-      loading:false,
       upConfig:{autoRefresh:false, upContent:' ', downContent:' ', content:' ', loadingContent:' ', height:30},
       currentDate:{after:today, past:yesterday, today:today, yesterday:yesterday},
       editAppoint:{}

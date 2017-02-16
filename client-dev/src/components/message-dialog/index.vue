@@ -76,13 +76,10 @@ export default {
           that.$root.$emit('doToast', res.data.msg, "warn");
         } else if (res.data.status == 1) {
           that.phone_show = false;
-          that.bindSuccess(phone);
+          that.$emit('bind-success', phone);
         }
         that.$root.loading = false;
       });
-    },
-    bindSuccess: function (phone) {
-    	this.$emit('bind-success', phone);
     }
   }
 }

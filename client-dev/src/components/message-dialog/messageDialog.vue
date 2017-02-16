@@ -26,8 +26,7 @@ export default {
     }
   },
   props: {
-  	phone_show: false,
-  	isBindPhone: false
+  	phone_show: false
   },
   methods: {
   	doSendCode (phone) {

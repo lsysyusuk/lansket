@@ -10,7 +10,7 @@
         <div class="scroll-item next" @click="more_week('next')"></div>
       </div>
     </scroller>
-    <cell v-for="courtList in episode_court_map" :title="treatEpisode(courtList.episode)" :is-link="false" >
+    <cell v-for="courtList in episode_court_map" :title="courtList.episode | episode" :is-link="false" >
       <button-tab class='court-list'>
          <button-tab-item v-for="(index, court) in courtList.courtList" class='court' :class="[treatDivide2(index) ?'court-l' : 'court-r', court.status == 2 ? 'disable' : '', court.status == 1 ? 'active' : '']"  @click='courtClick(court)' ><span>￥{{getPrice(courtList.episode)}}</span></button-tab-item>
       </button-tab>
@@ -21,7 +21,7 @@
     <div>
       <confirm :show.sync="show" :cancel-text="'取消'" :confirm-text="'确认'" :title="'预约确认'" @on-confirm="doAppointConfirm" >
         <div v-for='episode in appointText' style="text-align: center">
-          {{treatEpisode(episode.episode)}}
+          {{episode.episode | episode}}
           <span v-for='court in episode.courtList' style="padding-left: 0.3rem"><font color="red">{{court}}</font>号场</span>
         </div>
       </confirm>
@@ -32,7 +32,7 @@
 
 <script>
 import {XHeader, Group, Cell, ButtonTab, ButtonTabItem, XButton, Confirm, Scroller, XInput} from 'vux/src/components';
-import MessageDialog from './message-dialog/index.vue'
+import MessageDialog from './message-dialog/messageDialog.vue'
 import { _ } from 'underscore/underscore-min';
 export default {
   components: {
@@ -102,9 +102,6 @@ export default {
         return
       }
       court.status = (court.status + 1) % 2;
-    },
-    treatEpisode: function(num) {
-        return (num +':00-' + (parseInt(num)+2) + ':00');
     },
     treatDivide2: function(num) {
       return (num % 2) > 0 ? false : true

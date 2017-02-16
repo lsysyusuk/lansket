@@ -15,3 +15,7 @@ exports.formateDateTime = function (date) {
 	}
 	
 };
+
+exports.episode = function (num) {
+	return (num +':00-' + (parseInt(num)+2) + ':00');
+};

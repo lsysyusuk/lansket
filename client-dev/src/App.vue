@@ -19,8 +19,8 @@ export default {
     return {
       toast:{show:false, type:"success", text:""},
       loading:false,
-      // server: "",
-      server: "http://127.0.0.1",
+      server: "",
+      // server: "http://127.0.0.1",
     }
   },
   events: {
@@ -66,6 +66,11 @@ body {
   }
 }
 
+.vux-header {
+  background-color: #f27330 !important;
+  margin: 0 0 0.2rem;
+  box-shadow: 0 0 0.5rem #000;
+}
 .page {
   position: absolute;
   left: 0;

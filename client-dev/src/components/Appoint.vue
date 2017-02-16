@@ -12,7 +12,7 @@
     </scroller>
     <cell v-for="courtList in episode_court_map" :title="treatEpisode(courtList.episode)" :is-link="false" >
       <button-tab class='court-list'>
-         <button-tab-item v-for="(index, court) in courtList.courtList" :class="[treatDivide2(index) ?'court-l' : 'court-r', court.status == 2 ? 'disable' : '', court.status == 1 ? 'active' : '']"  @click='courtClick(court)' ><span>￥{{getPrice(courtList.episode)}}</span></button-tab-item>
+         <button-tab-item v-for="(index, court) in courtList.courtList" class='court' :class="[treatDivide2(index) ?'court-l' : 'court-r', court.status == 2 ? 'disable' : '', court.status == 1 ? 'active' : '']"  @click='courtClick(court)' ><span>￥{{getPrice(courtList.episode)}}</span></button-tab-item>
       </button-tab>
     </cell>
     <cell :is-link="false" style='display: block; text-align: left'><span class='description avai'>&nbsp;&nbsp;&nbsp; </span><span style='color:#000'>可预订</span><span class='description choose'>&nbsp;&nbsp;&nbsp; </span><span style='color:#000'>选中</span><span class='description disable'>&nbsp;&nbsp;&nbsp; </span><span style='color:#000'>不可定</span></cell>
@@ -71,8 +71,6 @@ export default {
       weekList: weekList,
       current_date: weekList[2].date,
       show: false,
-      // server: "",
-      server: "http://127.0.0.1",
       appointText:[],
       appointInfo:[],
       phone_show:false,
@@ -267,10 +265,6 @@ export default {
   box-shadow: 0 0 0.5rem #000;
   height: 3rem
 }
-.vux-demo {
-  text-align: center;
-}
-
 .logo {
   width: 100px;
   height: 100px
@@ -301,27 +295,23 @@ export default {
     background-clip: padding-box;
 }
 .court-list {
-   /*width: 16.5rem;*/
    display: block !important;
 }
-.court-l {
+.court {
   position: relative;
   padding-left: 0.1rem;
-  background: url(../assets/court-l.png) no-repeat center!important;
-  background-size:100% 100% !important;
   border: 0 !important;
   height: 3rem !important;
   display: inline-block !important;
   width: 25% !important;
 }
+.court-l {
+  background: url(../assets/court-l.png) no-repeat center!important;
+  background-size:100% 100% !important;
+}
 .court-r {
-  position: relative;
   background: url(../assets/court-r.png) no-repeat center!important;
   background-size:100% 100% !important;
-  border: 0 !important;
-  height: 3rem !important;
-  display: inline-block !important;
-  width: 25% !important;
 }
 .court-l span{
   position: absolute;
@@ -351,10 +341,7 @@ export default {
    background: url(../assets/court-r-disable.png) no-repeat center!important;
    background-size:100% 100% !important;
 }
-.court-l.active span{
-  color: #fff;
-}
-.court-r.active span{
+.court.active span{
   color: #fff;
 }
 .weui_cell:before {

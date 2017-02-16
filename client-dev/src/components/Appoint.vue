@@ -77,11 +77,7 @@ export default {
       appointInfo:[],
       phone_show:false,
       isBindPhone:false,
-      isManager:false,
-      verify:'',
-      countTime:'发送验证码',
-      phone: null,
-      verifyCode: null
+      isManager:false
     }
     
   },
@@ -115,7 +111,10 @@ export default {
     treatDivide2: function(num) {
       return (num % 2) > 0 ? false : true
     },
-    doAppoint: function () {
+    doAppoint: function (phone) {
+      if (phone && phone.length > 0) {
+        this.isBindPhone = true;
+      }
       if (!this.isBindPhone) {
         return this.phone_show = true;
       }
@@ -242,62 +241,6 @@ export default {
         that.appointList4week = _.extend(that.appointList4week,res.data.appointList4week);
         that.$root.loading = false;
       });
-    },
-    doSendCode: function (phone) {
-      if (!isNaN(this.countTime)) {
-        return;
-      }
-      var re_phone = /\d{11}/;
-      if (!re_phone.test(phone)) {
-        return this.$root.$emit('doToast',"您输入的手机号有误", "warn");
-      }
-      var that = this;
-      
-      this.$root.loading = true;
-      that.$http.get(this.$root.server + '/lantu/verifyPhone/sendCode?phone=' + phone).then(function (res) {
-        if (res.data.status == 0) {
-          that.$root.$emit('doToast', res.data.msg, "warn");
-        } if (res.data.status == 1) {
-          that.verify = '已发送:';
-          that.countTime = 60;
-          var inter = setInterval(function(){
-            console.log(that.countTime)
-            if ((that.countTime--) < 1) {
-              clearInterval(inter);
-              that.verify = '';
-              that.countTime = '重新发送';
-            }
-          }, 1000);
-        }
-        that.$root.loading = false;
-      });
-
-      
-    },
-    doBindPhone: function(phone, code) {
-      if (isNaN(this.countTime)) {
-        return this.$root.$emit('doToast', "请先发送验证码", "warn");
-      }
-      var re_phone = /\d{11}/;
-      if (!re_phone.test(phone)) {
-        return this.$root.$emit('doToast', "您输入的手机号有误", "warn");
-      }
-      if (!code) {
-        return this.$root.$emit('doToast', "请填写验证码", "warn");
-      }
-      var that = this;
-      that.$root.loading = true;
-      that.$http.get(this.$root.server + '/lantu/verifyPhone/verifyCode?phone=' + phone + '&code=' + code).then(function (res) {
-        if (res.data.status == 0) {
-          that.$root.$emit('doToast', res.data.msg, "warn");
-        } else if (res.data.status == 1) {
-          that.phone_show = false;
-          that.isBindPhone = true;
-          that.doAppoint();
-        }
-        that.$root.loading = false;
-      });
-
     },
     toManage: function () {
       this.$router.go('/manage')

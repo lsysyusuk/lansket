@@ -80,9 +80,9 @@ app.use(function (req, res, next) {
     //   country: '中国',
     //   province: '北京',
     //   city: '丰台',
-    //   phone: 15620517445,
+    //   // phone: 15620517445,
     //   avatarUrl: 'http://wx.qlogo.cn/mmopen/xPKCxELaaj6xJFcfBibjR6FksibCP33Ns7nyx4j8OXgnyRTHwC1xWtL8dRy5dcMbmWRlfj7tpwGMB3jxTgsujLVRIBC01h49ibia/0',
-    //   _id: mongoose.Types.ObjectId('58788d8774957b14a31bb0dd'),
+    //   _id: mongoose.Types.ObjectId('58a5220f5bb19b871ad2547f'),
     //   type:1
     // };
 

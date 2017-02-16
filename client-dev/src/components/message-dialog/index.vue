@@ -3,7 +3,7 @@
 		<confirm :show.sync="phone_show" :cancel-text="'取消'" :confirm-text="'确认'" :title="'手机绑定'" @on-confirm="doBindPhone(phone,verifyCode)" >
 	        <input type="text" placeholder="手机号" v-model="phone" style="width: 90%; border: 1px solid #a0a0a0; border-radius: .25rem; height: 1.6rem; padding-left: 0.5rem;" />
 	        <div style="margin-top: 1rem;">
-	          <input type="text" placeholder="验证码" v-model="verifyCode" style="width: 40%; border: 1px solid #a0a0a0; border-radius: .25rem; height:ΩΩΩ 1.6rem; padding-left: 0.5rem; margin-right: 9%;" />
+	          <input type="text" placeholder="验证码" v-model="verifyCode" style="width: 40%; border: 1px solid #a0a0a0; border-radius: .25rem; height: 1.6rem; padding-left: 0.5rem; margin-right: 9%;" />
 	          <x-button mini type="primary" :disabled="!isNaN(countTime)" style="width:40%; font-size: 0.8rem" @click='doSendCode(phone)'>{{verify}}{{countTime}}</x-button>
 	        </div>
   		</confirm>
@@ -76,7 +76,7 @@ export default {
           that.$root.$emit('doToast', res.data.msg, "warn");
         } else if (res.data.status == 1) {
           that.phone_show = false;
-          that.bindSuccess(that.phone);
+          that.bindSuccess(phone);
         }
         that.$root.loading = false;
       });

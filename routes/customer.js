@@ -4,6 +4,16 @@ var lantuModel = require('../model');
 var mongoose = require("mongoose");
 var _ = require('underscore');
 var logger = require('../logHelper').helper;  
+var config = require('../config');
+var fs = require('fs')
+var WXPay = require('weixin-pay');
+
+var wxPay = WXPay({
+  appid: config.wechat.appid,
+  mch_id: config.wechat.mchId,
+  partner_key: config.wechat.key, //微信商户平台API密钥
+  pfx: fs.readFileSync('./' + config.wechat.keyfile), //微信商户平台证书
+});
 
 
 var episodeList = [10, 12, 14, 16, 18, 20];
@@ -114,6 +124,7 @@ router.post('/doAppoint.json', function(req, res, next) {
   var insertAppoint = {customer:user, createTime:date, updateTime:date, valid:true, isPay:false};
   insertAppoint.appointDate = req.body.appointDate;
   insertAppoint.appointInfo = JSON.parse(req.body.appointInfo);
+  insertAppoint.code = '20150331'+Math.random().toString().substr(2, 10);
   var q = {"customer._id":user._id,"appointDate":appointDate}
 
   var validateJson = {appointInfo:{$elemMatch:{$or:[]}}};
@@ -165,10 +176,61 @@ router.post('/doAppoint.json', function(req, res, next) {
       }
     }
   });
+})
 
-  
-
+router.get('/earnest/pay.json', function (req, res, next) {
+  var user = req.session.user;
+  var ip = getClientIp(req);
+  logger.writeInfo(ip);
+  try {
+    wxPay.getBrandWCPayRequestParams({
+      openid: user.wechatOpenid,
+      body: '公众号支付测试',
+      detail: '公众号支付测试',
+      out_trade_no: '20150331'+Math.random().toString().substr(2, 10),
+      total_fee: 1,
+      spbill_create_ip: ip,
+      notify_url: 'http://' + config.domain + config.wechat.notifyUrl
+    }, function(err, result){
+      // in express
+      // res.render('wxpay/jsapi', { payargs:result })
+      res.send({ payargs:result });
+    });
+  } catch (err) {
+    logger.writeErr(err)
+  }
   
 })
+
+router.post('/notify.json', function (req, res, next) {
+  res.success();
+});
+
+var validateAppoint = function (userId, appointDate, appointInfo) {
+  var validateJson = {appointInfo:{$elemMatch:{$or:[]}}};
+  validateJson.appointInfo.$elemMatch.$or = appointInfo;
+  validateJson.appointDate = appointDate;
+  validateJson.valid = true;
+  validateJson.isPay = true;
+
+  appoint_model.find(validateJson, function (error, docs) {
+    if (error) {
+      logger.writeErr(error);
+    } else {
+      logger.writeInfo(docs);
+      return _.some(docs, function (n) {
+        return n.customer._id.toString() != userId.toString();
+      })
+    }
+  });
+
+}
+
+var getClientIp = function (req) {
+  return req.headers['x-forwarded-for'] ||
+  req.connection.remoteAddress ||
+  req.socket.remoteAddress ||
+  req.connection.socket.remoteAddress;
+};
 
 module.exports = router;

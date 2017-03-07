@@ -29,6 +29,7 @@ var user_schema = new mongoose.Schema({
 
 var appoint_schema = new mongoose.Schema({
     id:mongoose.Schema.Types.ObjectId,
+    code: String,
     customer : user_schema,
     createTime : Date,
     updateTime : Date,

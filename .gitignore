@@ -3,3 +3,4 @@ npm-debug.log*
 node_modules
 config.js
 log4js.json
+apiclient_cert*

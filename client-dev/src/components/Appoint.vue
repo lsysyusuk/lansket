@@ -146,7 +146,8 @@ export default {
         } else if(res.data.status == 1) {
           that.episode_court_map_week[that.current_date] = that.episode_court_map;
 
-          that.$root.$emit('doToast', "预约成功", "success")
+          // that.$root.$emit('doToast', "预约成功", "success")
+          this.$router.go('/order')
         }
       });
     },
@@ -256,12 +257,6 @@ export default {
 </script>
 
 <style scope>
-.vux-header {
-  background-color: #f27330 !important;
-  margin: 0 0 0.2rem;
-  box-shadow: 0 0 0.5rem #000;
-  height: 3rem
-}
 .logo {
   width: 100px;
   height: 100px

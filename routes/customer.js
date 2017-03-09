@@ -5,6 +5,7 @@ var mongoose = require("mongoose");
 var _ = require('underscore');
 var logger = require('../logHelper').helper;  
 var config = require('../config');
+var util = require('../util');
 var fs = require('fs')
 var WXPay = require('weixin-pay');
 
@@ -123,8 +124,10 @@ router.post('/doAppoint.json', function(req, res, next) {
   var appointDate = req.body.appointDate;
   var insertAppoint = {customer:user, createTime:date, updateTime:date, valid:true, isPay:false};
   insertAppoint.appointDate = req.body.appointDate;
+  insertAppoint.hour = req.body.hour;
+  insertAppoint.price = req.body.price;
   insertAppoint.appointInfo = JSON.parse(req.body.appointInfo);
-  insertAppoint.code = '20150331'+Math.random().toString().substr(2, 10);
+  insertAppoint.code = util.generateCode();
   var q = {"customer._id":user._id,"appointDate":appointDate}
 
   var validateJson = {appointInfo:{$elemMatch:{$or:[]}}};
@@ -155,11 +158,13 @@ router.post('/doAppoint.json', function(req, res, next) {
               // console.log(docs)
               var updateAppoint = docs[0];
               updateAppoint.appointInfo = insertAppoint.appointInfo;
+              updateAppoint.hour = insertAppoint.hour;
+              updateAppoint.price = insertAppoint.price;
               updateAppoint.save(function(err) {
                 if (err) {
                   return res.send({status:0});
                 } else {
-                  return res.send({status:1});
+                  return res.send({status:1, code: updateAppoint.code});
                 }
               })
             } else {
@@ -167,7 +172,7 @@ router.post('/doAppoint.json', function(req, res, next) {
                 if (err) {
                   return res.send({status:0});
                 } else {
-                  return res.send({status:1});
+                  return res.send({status:1, code: insertAppoint.code});
                 }
               })
             }
@@ -180,31 +185,48 @@ router.post('/doAppoint.json', function(req, res, next) {
 
 router.get('/earnest/pay.json', function (req, res, next) {
   var user = req.session.user;
-  var ip = getClientIp(req);
-  logger.writeInfo(ip);
-  try {
-    wxPay.getBrandWCPayRequestParams({
-      openid: user.wechatOpenid,
-      body: '公众号支付测试',
-      detail: '公众号支付测试',
-      out_trade_no: '20150331'+Math.random().toString().substr(2, 10),
-      total_fee: 1,
-      spbill_create_ip: ip,
-      notify_url: 'http://' + config.domain + config.wechat.notifyUrl
-    }, function(err, result){
-      // in express
-      // res.render('wxpay/jsapi', { payargs:result })
-      res.send({ payargs:result });
-    });
-  } catch (err) {
-    logger.writeErr(err)
-  }
-  
+  var code = req.query.code;
+  logger.writeInfo(code);
+
+  appoint_model.find({'code':code}, function (error, docs) {
+    if (error) {
+      logger.writeErr(error);
+    } else {
+      logger.writeInfo(docs);
+      if (docs.length != 1) {
+        logger.writeErr("获取订单信息失败");
+      } else {
+        var appoint = docs[0];
+
+        var ip = getClientIp(req);
+        try {
+          wxPay.getBrandWCPayRequestParams({
+            openid: user.wechatOpenid,
+            body: '公众号支付测试',
+            detail: '公众号支付测试',
+            out_trade_no: '20150331'+Math.random().toString().substr(2, 10),
+            total_fee: appoint.price,
+            spbill_create_ip: ip,
+            notify_url: 'http://' + config.domain + config.wechat.notifyUrl
+          }, function(err, result){
+            // in express
+            // res.render('wxpay/jsapi', { payargs:result })
+            res.send({ payargs:result , appoint: appoint});
+          });
+        } catch (err) {
+          logger.writeErr(err)
+        }
+      }
+    }
+  });
 })
 
-router.post('/notify.json', function (req, res, next) {
-  res.success();
-});
+router.post('/notify.json', wxPay.useWXCallback(function(msg, req, res, next){
+    // 处理商户业务逻辑
+
+    // res.success() 向微信返回处理成功信息，res.fail()返回失败信息。
+    res.success();
+}));
 
 var validateAppoint = function (userId, appointDate, appointInfo) {
   var validateJson = {appointInfo:{$elemMatch:{$or:[]}}};

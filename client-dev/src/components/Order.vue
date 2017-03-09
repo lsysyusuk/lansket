@@ -50,7 +50,7 @@ export default {
     }
     var that = this;
     that.$root.loading = true;
-    that.$http.get(this.$root.server + '/lantu/customer/earnest/pay.json').then(function (res) {
+    that.$http.get(this.$root.server + '/lantu/customer/earnest/pay.json?code=' + that.$route.params.code).then(function (res) {
       console.log(res.data.payargs);
       that.args = res.data.payargs;
       that.$root.loading = false;

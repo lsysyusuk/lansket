@@ -40,7 +40,9 @@ var appoint_schema = new mongoose.Schema({
   status : Boolean
 }],
     valid : Boolean,
-    isPay : Boolean
+    isPay : Boolean,
+    hour : Number,
+    price : Number
 },{collection: "appoint"});
 
 var appoint_model = mongoose.model("appoint", appoint_schema);

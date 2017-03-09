@@ -13,7 +13,7 @@
                 <cell v-for="appoint in day.appoint" :title="appoint.customer.nickname"  @click="appointDetail(appoint)"  is-link>
                   <img slot="icon" :src="appoint.customer.avatarUrl" style="width:2rem;border-radius:0.5rem">
                   <a slot="after-title" :href="'tel:' + appoint.customer.phone" @click.stop='' >{{appoint.customer.phone}}</a>
-                  <i class="fa-i fa fa-money" :class="appoint.isPay ? 'main-color' : ''"  aria-hidden="true"></i><i class="fa-i fa fa-check-square-o" :class="appoint.valid ? 'main-color' : ''" aria-hidden="true"></i>{{getTotal(appoint).count}}场时 |￥{{getTotal(appoint).price}}
+                  <i class="fa-i fa fa-money" :class="appoint.isPay ? 'main-color' : ''"  aria-hidden="true"></i><i class="fa-i fa fa-check-square-o" :class="appoint.valid ? 'main-color' : ''" aria-hidden="true"></i>{{appoint.hour}}场时 |￥{{appoint.price}}
                 </cell>
               </group>
               <div v-show='appointList4week[name].length == 0' style="padding-top:2rem; color:#f27330; text-align: center;">
@@ -120,18 +120,6 @@ export default {
         return m + (n.appoint.length * 3.6 + 2.4);
       },0);
       return "height:" + hn + "rem; min-height: 100%;";
-    },
-    getTotal: function (appoint) {
-      var holiday = ['2017-01-27','2017-01-28','2017-01-29','2017-01-30','2017-01-31','2017-02-01','2017-02-02','2017-04-02','2017-04-03','2017-04-04','2017-04-29','2017-04-30','2017-05-01'];
-      var court = _.reduce(appoint.appointInfo, function (m,n) {
-        var _p = 200;
-        var week = new Date(appoint.appointDate).getDay();
-        if (week == 0 || week == 6 || m.episode > 18 || _.some(holiday, function(n){return appoint.appointDate == n})) {
-          _p = 300;
-        }
-        return {count:(m.count + 2), price:(m.price + _p)}
-      },{count:0, price:0})
-      return court;
     },
     appointDetail: function (appoint) {
       this.detail_show = true;

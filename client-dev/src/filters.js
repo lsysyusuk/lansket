@@ -1,3 +1,8 @@
+import { _ } from 'underscore/underscore-min';
+var holiday = ['2017-01-27','2017-01-28','2017-01-29','2017-01-30','2017-01-31','2017-02-01','2017-02-02','2017-04-02','2017-04-03','2017-04-04','2017-04-29','2017-04-30','2017-05-01'];
+var general = 200;
+var special = 300;
+
 exports.formateDateTime = function (date) {
 	if (date) {
 		date = new Date(date);
@@ -19,3 +24,19 @@ exports.formateDateTime = function (date) {
 exports.episode = function (num) {
 	return (num +':00-' + (parseInt(num)+2) + ':00');
 };
+
+exports.getPrice = function (episode, date) {
+	var week = new Date(date).getDay();
+	if (parseInt(episode) > 18 || week == 0 || week == 6 || _.some(holiday, function(n){return date == n})) {
+		return special;
+	} else {
+		return general;
+	}
+};
+
+exports.getTotal = function (appoint) {
+  var court = _.reduce(appoint.appointInfo, function (m,n) {
+    return {hour:(m.hour + 2), price:(m.price + exports.getPrice(n.episode, appoint.appointDate))}
+  },{hour:0, price:0})
+  return court;
+}

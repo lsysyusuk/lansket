@@ -25,7 +25,8 @@ router.map({
   '/manage': {
   	component: Manage
   },
-  '/order': {
+  '/order/:code': {
+  	name: 'order',
   	component: Order
   }
 })

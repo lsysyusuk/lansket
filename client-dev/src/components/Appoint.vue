@@ -12,7 +12,7 @@
     </scroller>
     <cell v-for="courtList in episode_court_map" :title="courtList.episode | episode" :is-link="false" >
       <button-tab class='court-list'>
-         <button-tab-item v-for="(index, court) in courtList.courtList" class='court' :class="[treatDivide2(index) ?'court-l' : 'court-r', court.status == 2 ? 'disable' : '', court.status == 1 ? 'active' : '']"  @click='courtClick(court)' ><span>￥{{getPrice(courtList.episode)}}</span></button-tab-item>
+         <button-tab-item v-for="(index, court) in courtList.courtList" class='court' :class="[treatDivide2(index) ?'court-l' : 'court-r', court.status == 2 ? 'disable' : '', court.status == 1 ? 'active' : '']"  @click='courtClick(court)' ><span>￥{{courtList.episode | getPrice current_date}}</span></button-tab-item>
       </button-tab>
     </cell>
     <cell :is-link="false" style='display: block; text-align: left'><span class='description avai'>&nbsp;&nbsp;&nbsp; </span><span style='color:#000'>可预订</span><span class='description choose'>&nbsp;&nbsp;&nbsp; </span><span style='color:#000'>选中</span><span class='description disable'>&nbsp;&nbsp;&nbsp; </span><span style='color:#000'>不可定</span></cell>
@@ -33,6 +33,7 @@
 <script>
 import {XHeader, Group, Cell, ButtonTab, ButtonTabItem, XButton, Confirm, Scroller, XInput} from 'vux/src/components';
 import MessageDialog from './message-dialog/messageDialog.vue'
+import Vue from 'vue'
 import { _ } from 'underscore/underscore-min';
 export default {
   components: {
@@ -137,9 +138,11 @@ export default {
       
     },
     doAppointConfirm: function () {
+      var getTotalFun = Vue.filter('getTotal');
+      var _total = getTotalFun({appointDate: this.current_date, appointInfo:this.appointInfo});
       var that = this;
       that.$root.loading = true;
-      this.$http.post(this.$root.server + '/lantu/customer/doAppoint.json',{appointDate:this.current_date, appointInfo: JSON.stringify(this.appointInfo)}).then(function (res) {
+      this.$http.post(this.$root.server + '/lantu/customer/doAppoint.json',{appointDate:this.current_date, appointInfo: JSON.stringify(this.appointInfo), hour: _total.hour, price: _total.price}).then(function (res) {
         that.$root.loading = false;
         if (res.data.status == 0) {
           that.$root.$emit('doToast', res.data.msg, "warn");
@@ -147,7 +150,7 @@ export default {
           that.episode_court_map_week[that.current_date] = that.episode_court_map;
 
           // that.$root.$emit('doToast', "预约成功", "success")
-          this.$router.go('/order')
+          this.$router.go({name: 'order', params: {code: res.data.code}})
         }
       });
     },
@@ -240,16 +243,6 @@ export default {
     },
     toManage: function () {
       this.$router.go('/manage')
-    },
-    getPrice: function (date) {
-      var holiday = ['2017-01-27','2017-01-28','2017-01-29','2017-01-30','2017-01-31','2017-02-01','2017-02-02','2017-04-02','2017-04-03','2017-04-04','2017-04-29','2017-04-30','2017-05-01'];
-      var week = new Date(this.current_date).getDay();
-      var that = this;
-      if (parseInt(date) > 18 || week == 0 || week == 6 || _.some(holiday, function(n){return that.current_date == n})) {
-        return 300;
-      } else {
-        return 200;
-      }
     }
   }
 }

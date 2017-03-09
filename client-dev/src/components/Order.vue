@@ -44,7 +44,7 @@ export default {
             // 进入订单系那详情画面
             console.log('success')
           } else {
-            alert(res.err_msg)
+            alert(JSON.stringify(res))
             console.log('fail')
           }
         });

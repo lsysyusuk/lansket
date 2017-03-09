@@ -197,7 +197,6 @@ router.get('/earnest/pay.json', function (req, res, next) {
         logger.writeErr("获取订单信息失败");
       } else {
         var appoint = docs[0];
-
         var ip = getClientIp(req);
         try {
           wxPay.getBrandWCPayRequestParams({
@@ -205,7 +204,7 @@ router.get('/earnest/pay.json', function (req, res, next) {
             body: '公众号支付测试',
             detail: '公众号支付测试',
             out_trade_no: '20150331'+Math.random().toString().substr(2, 10),
-            total_fee: appoint.price,
+            total_fee: 1300,
             spbill_create_ip: ip,
             notify_url: 'http://' + config.domain + config.wechat.notifyUrl
           }, function(err, result){

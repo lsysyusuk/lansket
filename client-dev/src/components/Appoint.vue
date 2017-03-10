@@ -249,7 +249,7 @@ export default {
 
 </script>
 
-<style scope>
+<style scoped>
 .logo {
   width: 100px;
   height: 100px
@@ -284,7 +284,6 @@ export default {
 }
 .court {
   position: relative;
-  padding-left: 0.1rem;
   border: 0 !important;
   height: 3rem !important;
   display: inline-block !important;
@@ -332,15 +331,8 @@ export default {
 .weui_cell:before {
   border: 0 !important;
 }
-.weui_cell_primary {
-  -webkit-box-fles: 1 !important;
-  flex: 1 !important;
-  font-size: 0.8rem;
-}
-.weui_cell_ft {
-  -webkit-flex-box: 3;
-  flex: 3;
-}
+
+
 .scroll-item {
   display: inline-block;
   width: 4.4rem;

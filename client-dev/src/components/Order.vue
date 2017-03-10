@@ -1,7 +1,40 @@
 <template>
-  <div class="appoint page">
-    <x-header :left-options="{showBack: false}" :right-options="{showMore: isManager}" >篮&nbsp;&nbsp;途</x-header>
-    <x-button type='primary' style="position: fixed; bottom: 0; background-color:#f27330; opacity: 0.9; border-radius: 0;" @click='doAppoint'>微信支付</x-button>
+  <div class="order page" style="background:#fff">
+    <x-header class='nav-btn top' :left-options="{showBack: true}" :right-options="{showMore: isManager}" >篮&nbsp;&nbsp;途</x-header>
+    <div class='content' :class='[!appoint.isPay ? "has-bottom" : "", appoint.code ? "" : "hide"]'>
+      <group title='订单信息'>
+      <cell title=' 订单号' :value='appoint.code'>
+        <i slot="icon" width="20" class="fa-i fa fa-list-alt main-color icon"  aria-hidden="true"></i>
+      </cell>
+      <cell title='创建时间' :value='appoint.createTime | formateDateTime'>
+        <i slot="icon" width="20" class="fa-i fa fa-clock-o main-color icon"  aria-hidden="true"></i>
+      </cell>
+      <cell title='预定时间'>
+        <i slot="icon" width="20" class="fa-i fa fa-clock-o main-color icon"  aria-hidden="true"></i>
+        {{appoint.appointDate}} ({{appoint.appointDate | week}})
+      </cell>
+      <cell title='总价'>
+        <i slot="icon" width="20" class="fa-i fa fa-money main-color icon"  aria-hidden="true"></i>
+        <div slot="value">
+          <span class='main-color'>{{appoint.price}}元</span>
+        </div>
+      </cell>
+      <cell title='状态'>
+        <i slot="icon" width="20" class="fa-i fa fa-cog main-color icon"  aria-hidden="true"></i>
+        <div slot="value">
+          <span class='main-color'>{{appoint.isPay | status appoint.valid}}</span>
+        </div>
+      </cell>
+      </group>
+      <group title='预定场次' class='ep-info'>
+        <cell  v-for='ae in appoint.appointInfo' :title='ae.episode | episodeCourt ae.court' >
+          <div slot='value'>
+            <span class='main-color'>￥{{ae.episode | getPrice appoint.appointDate}}</span>
+          </div>
+        </cell>
+      </group>
+    </div>
+    <x-button :class='appoint.isPay ? "hide" : ""' type='primary' class='nav-btn bottom' @click='doAppoint'>微信支付</x-button>
   </div>
 </template>
 
@@ -22,40 +55,44 @@ export default {
   },
   data: function (){
     console.log("data start");
-    
-    
     return {
       // note: changing this line won't causes changes
       // with hot-reload because the reloaded component
       // preserves its current state and we are modifying
       // its initial state.
-      args: {}
+      args: {},
+      appoint: {}
     }
     
   },
   ready (){
     console.log("ready start");
-    window.lantu = {};
-    var that = this;
-    lantu.onBridgeReady = function() {
-      alert(1)
-      WeixinJSBridge.invoke('getBrandWCPayRequest', that.args, function (res) {
-          if (res.err_msg == "get_brand_wcpay_request:ok") {
-            // 进入订单系那详情画面
-            console.log('success')
-          } else {
-            alert(JSON.stringify(res))
-            console.log('fail')
-          }
-        });
+  },
+  route: {
+    data (transition) {
+      console.log("route start");
+      window.lantu = {};
+      var that = this;
+      lantu.onBridgeReady = function() {
+        WeixinJSBridge.invoke('getBrandWCPayRequest', that.args, function (res) {
+            if (res.err_msg == "get_brand_wcpay_request:ok") {
+              // 进入订单系那详情画面
+              console.log('success');
+              that.appoint.isPay = true;
+            } else {
+              console.log('fail')
+            }
+          });
+      }
+      var that = this;
+      that.$root.loading = true;
+      that.$http.get(this.$root.server + '/lantu/customer/earnest/pay.json?code=' + that.$route.params.code).then(function (res) {
+        console.log(res.data.payargs);
+        that.args = res.data.payargs;
+        that.appoint = res.data.appoint;
+        that.$root.loading = false;
+      });
     }
-    var that = this;
-    that.$root.loading = true;
-    that.$http.get(this.$root.server + '/lantu/customer/earnest/pay.json?code=' + that.$route.params.code).then(function (res) {
-      console.log(res.data.payargs);
-      that.args = res.data.payargs;
-      that.$root.loading = false;
-    });
   },
   methods: {
     doAppoint: function () {
@@ -77,8 +114,26 @@ export default {
 </script>
 
 <style scope>
-.logo {
-  width: 100px;
-  height: 100px
+.ep-info .weui_cell_primary {
+    -webkit-box-fles: 2 !important;
+    flex: 2 !important;
+}
+.ep-info .weui_cells {
+  /*max-height: 15rem;*/
+  overflow-y: auto;
+}
+.order {
+  overflow: auto
+}
+.content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  top: 3rem;
+  overflow: auto;
+}
+.content.has-bottom {
+  bottom: 3rem;
 }
 </style>

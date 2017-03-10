@@ -101,5 +101,43 @@ body {
   padding: 0 80%;
   opacity: 0;
 }
+.main-color {
+  color: #f27330;
+}
+.weui_cells {
+  font-size: 0.8rem !important
+}
+.weui_cell_ft {
+  -webkit-flex-box: 3 ;
+  flex: 3 ;
+}
+.weui_cell_primary {
+  -webkit-box-fles: 1 !important;
+  flex: 1 !important;
+  font-size: 0.8rem;
+}
+.icon {
+    margin-right: 0.5rem
+}
+.nav-btn {
+  position: absolute !important; 
+  table-layout: fixed; 
+  background-color: #f27330 !important; 
+  opacity: 0.9; 
+  border-radius: 0 !important;
+  height: 3rem;
+  line-height: normal !important;
+  vertical-align: middle !important;
+  width: 100%
+}
+.nav-btn.bottom {
+  bottom: 0; 
+}
+.nav-btn.top {
+  top: 0; 
+}
+.hide {
+  display: none !important;
+}
 </style>
 

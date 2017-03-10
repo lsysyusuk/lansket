@@ -11,7 +11,7 @@
             <div :style="calculateWidth(appointList4week[name])" >
               <group :title="day.date" v-for="day in appointList4week[name]">
                 <cell v-for="appoint in day.appoint" :title="appoint.customer.nickname"  @click="appointDetail(appoint)"  is-link>
-                  <img slot="icon" :src="appoint.customer.avatarUrl" style="width:2rem;border-radius:0.5rem">
+                  <img slot="icon" class='icon' :src="appoint.customer.avatarUrl" style="width:2rem;border-radius:0.5rem">
                   <a slot="after-title" :href="'tel:' + appoint.customer.phone" @click.stop='' >{{appoint.customer.phone}}</a>
                   <i class="fa-i fa fa-money" :class="appoint.isPay ? 'main-color' : ''"  aria-hidden="true"></i><i class="fa-i fa fa-check-square-o" :class="appoint.valid ? 'main-color' : ''" aria-hidden="true"></i>{{appoint.hour}}场时 |￥{{appoint.price}}
                 </cell>
@@ -184,7 +184,7 @@ export default {
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style >
+<style scoped>
 h1 {
   color: #42b983;
 }
@@ -192,52 +192,11 @@ h1 {
   line-height: inherit !important;
   color: #f27330 !important;
 }
-.weui_cells {
-  font-size: 0.8rem
-}
-.weui_cells_title {
-  margin-top: 0.5rem !important;
-  height: 1rem !important;
-}
-.weui_switch {
-  width: 2.5rem;
-  height: 1rem
-}
-.weui_switch:after {
-  width: 0.9rem;
-  height: 0.9rem;
-}
-.weui_switch:before {
-  width: 2.35rem;
-  height: 0.9rem;
-}
-.weui_cell_switch {
-  margin-top: 0 !important;
-  margin-bottom: 0 !important;
-  height: auto !important;
-  padding: 0.4rem 0 !important;
-}
-.vux-no-group-title {
-  margin: 0rem
-}
-.weui_cell_bd {
-  margin-left: 0.5rem !important
-}
-.pay-valid {
-  padding: 0;
-  width: 50%;
-  display: inline;
-}
-.pay-valid div {
-  display: table-cell !important ;
-  padding: 0 !important;
-}
+
 a {
   color: #f27330;
 }
-.weui_dialog_bd {
-  text-align: left !important
-}
+
 .xs-plugin-pulldown-container:after {
     content: '';
     display: block;
@@ -264,11 +223,51 @@ a {
   margin-right: 0.2rem;
   font-size: 1rem;
 }
-.main-color {
-  color: #f27330;
+
+.weui_cells_title {
+  margin-top: 0.5rem !important;
+  height: 1rem !important;
 }
+.weui_dialog_bd {
+  text-align: left !important
+}
+.weui_cell_bd {
+  margin-left: 0.5rem !important
+}
+</style>
+<style>
 .weui_dialog_bd {
   max-height: 15rem;
   overflow-y: scroll;
+}
+.weui_cell_switch {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  height: auto !important;
+  padding: 0.4rem 0 !important;
+}
+.weui_switch {
+  width: 2.5rem;
+  height: 1rem
+}
+.weui_switch:after {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+.weui_switch:before {
+  width: 2.35rem;
+  height: 0.9rem;
+}
+.pay-valid {
+  padding: 0;
+  width: 50%;
+  display: inline;
+}
+.pay-valid div {
+  display: table-cell !important ;
+  padding: 0 !important;
+}
+.vux-no-group-title {
+  margin: 0rem
 }
 </style>

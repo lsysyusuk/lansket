@@ -129,7 +129,7 @@ router.post('/doAppoint.json', function(req, res, next) {
   insertAppoint.price = req.body.price;
   insertAppoint.appointInfo = JSON.parse(req.body.appointInfo);
   insertAppoint.code = util.generateCode();
-  var q = {"customer._id":user._id,"appointDate":appointDate}
+  var q = {"customer._id":user._id,"appointDate":appointDate, valid:true}
 
   var validateJson = {appointInfo:{$elemMatch:{$or:[]}}};
   validateJson.appointInfo.$elemMatch.$or = insertAppoint.appointInfo;
@@ -294,7 +294,7 @@ var getClientIp = function (req) {
 
 var registerJob = function (code) {
   var date = new Date();
-  date = new Date(date.valueOf() + 0.1 * 60 * 1000);
+  date = new Date(date.valueOf() + 1 * 60 * 1000);
   var j = schedule.scheduleJob(date, function(code){
     logger.writeInfo('excute—————————— ' + code);
 

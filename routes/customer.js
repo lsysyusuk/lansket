@@ -8,6 +8,7 @@ var config = require('../config');
 var util = require('../util');
 var fs = require('fs')
 var WXPay = require('weixin-pay');
+var schedule = require('node-schedule');
 
 var wxPay = WXPay({
   appid: config.wechat.appid,
@@ -202,9 +203,9 @@ router.get('/earnest/pay.json', function (req, res, next) {
         try {
           wxPay.getBrandWCPayRequestParams({
             openid: user.wechatOpenid,
-            body: '公众号支付测试',
-            detail: '公众号支付测试',
-            out_trade_no: '20150331'+Math.random().toString().substr(2, 10),
+            body: '篮途场地预定(' + appoint.appointDate + ')',
+            detail: '篮途安全支付',
+            out_trade_no: code,
             // total_fee: appoint.price * 100,
             total_fee: 1,
             spbill_create_ip: ip,
@@ -212,7 +213,8 @@ router.get('/earnest/pay.json', function (req, res, next) {
           }, function(err, result){
             // in express
             // res.render('wxpay/jsapi', { payargs:result })
-            res.send({ payargs:result , appoint: appoint});
+            var expire = registerJob(code);
+            res.send({ payargs:result , appoint: appoint, expire: expire});
           });
         } catch (err) {
           logger.writeErr(err)
@@ -223,11 +225,42 @@ router.get('/earnest/pay.json', function (req, res, next) {
 })
 
 router.use('/notify.json', wxPay.useWXCallback(function(msg, req, res, next){
-    console.log('notify —————— start')
+    logger.writeInfo('notify —————— start')
     // 处理商户业务逻辑
-    console.log(msg);
+    logger.writeInfo(msg);
+    try {
+      if (msg.result_code.toUpperCase() == 'SUCCESS') {
+        var code = msg.out_trade_no;
 
-    // res.success() 向微信返回处理成功信息，res.fail()返回失败信息。
+        appoint_model.find({'code':code}, function (error, docs) {
+          if (error) {
+            logger.writeErr(error);
+          } else {
+            if (docs.length != 1) {
+              logger.writeErr("获取订单信息失败");
+            } else {
+              var appoint = docs[0];
+              //检查有效且未支付
+              if (appoint.valid && !appoint.isPay) {
+                appoint.isPay = true;
+                appoint.save(function(err) {
+                  if (err) {
+                    res.fail();
+                  }
+                })
+              } else {
+                res.fail();
+              }
+            }
+          }
+        });
+      } else {
+        logger.writeErr(msg.out_trade_no);
+      }
+    } catch (err) {
+      res.fail();
+    }
+    
     res.success();
   })
 );
@@ -258,5 +291,39 @@ var getClientIp = function (req) {
   req.socket.remoteAddress ||
   req.connection.socket.remoteAddress;
 };
+
+var registerJob = function (code) {
+  var date = new Date();
+  date = new Date(date.valueOf() + 0.1 * 60 * 1000);
+  var j = schedule.scheduleJob(date, function(code){
+    logger.writeInfo('excute—————————— ' + code);
+
+    appoint_model.findOne({'code': code}, function (error, appoint) {
+      if (error) {
+        logger.writeErr('注销订单失败,未找到该订单——————' + code);
+      } else {
+        if (appoint.isPay) {
+          logger.writeInfo('订单已支付，无需注销——————' + code);
+        } else {
+          wxPay.closeOrder({out_trade_no:code}, function(err, result){
+            if (err) {
+              logger.writeErr('注销订单失败，关闭微信订单失败——————' + code);
+            } else {
+              appoint.valid = false;
+              appoint.save(function(err) {
+                if (err) {
+                  logger.writeErr('注销订单失败——————' + code);
+                } else {
+                  logger.writeInfo('注销订单成功——————' + code);
+                }
+              })
+            }
+          });
+        }
+      }
+    })
+  }.bind(null, code));
+  return date;
+}
 
 module.exports = router;

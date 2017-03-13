@@ -205,7 +205,8 @@ router.get('/earnest/pay.json', function (req, res, next) {
             body: '公众号支付测试',
             detail: '公众号支付测试',
             out_trade_no: '20150331'+Math.random().toString().substr(2, 10),
-            total_fee: appoint.price * 100,
+            // total_fee: appoint.price * 100,
+            total_fee: 1,
             spbill_create_ip: ip,
             notify_url: 'http://' + config.domain + config.wechat.notifyUrl
           }, function(err, result){
@@ -221,12 +222,15 @@ router.get('/earnest/pay.json', function (req, res, next) {
   });
 })
 
-router.post('/notify.json', wxPay.useWXCallback(function(msg, req, res, next){
+router.use('/notify.json', wxPay.useWXCallback(function(msg, req, res, next){
+    console.log('notify —————— start')
     // 处理商户业务逻辑
+    console.log(msg);
 
     // res.success() 向微信返回处理成功信息，res.fail()返回失败信息。
     res.success();
-}));
+  })
+);
 
 var validateAppoint = function (userId, appointDate, appointInfo) {
   var validateJson = {appointInfo:{$elemMatch:{$or:[]}}};

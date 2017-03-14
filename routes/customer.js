@@ -207,7 +207,7 @@ router.get('/earnest/pay.json', function (req, res, next) {
             detail: '篮途安全支付',
             out_trade_no: code,
             // total_fee: appoint.price * 100,
-            total_fee: 1,
+            total_fee: appoint.price,
             spbill_create_ip: ip,
             notify_url: 'http://' + config.domain + config.wechat.notifyUrl
           }, function(err, result){

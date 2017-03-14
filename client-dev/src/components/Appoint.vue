@@ -17,7 +17,7 @@
     </cell>
     <cell :is-link="false" style='display: block; text-align: left'><span class='description avai'>&nbsp;&nbsp;&nbsp; </span><span style='color:#000'>可预订</span><span class='description choose'>&nbsp;&nbsp;&nbsp; </span><span style='color:#000'>选中</span><span class='description disable'>&nbsp;&nbsp;&nbsp; </span><span style='color:#000'>不可定</span></cell>
     <cell :is-link="false"></cell>
-    <x-button type='primary' style="position: fixed; bottom: 0; background-color:#f27330; opacity: 0.9; border-radius: 0;" @click='doAppoint'>我要预定</x-button>
+    <x-button type='primary' :disabled='aleady_pay' style="position: fixed; bottom: 0; background-color: #f27330; opacity: 0.9; border-radius: 0;"  @click='doAppoint'>{{aleady_pay ? '已预约' : '我要预定'}}</x-button>
     <div>
       <confirm :show.sync="show" :cancel-text="'取消'" :confirm-text="'去支付'" :title="'预约确认'" @on-confirm="doAppointConfirm" >
         <div v-for='episode in appointText' style="text-align: center">
@@ -76,9 +76,23 @@ export default {
       appointInfo:[],
       phone_show:false,
       isBindPhone:false,
-      isManager:false
+      isManager:false,
+      aleady_pay: false
     }
     
+  },
+  watch: {
+    episode_court_map: function () {
+      if (_.some(this.episode_court_map, function (e) {
+        return _.some(e.courtList, function (ee) {
+          return ee.status == 1;
+        })
+      })) {
+        this.aleady_pay = true;
+      } else {
+        this.aleady_pay = false;
+      }
+    }
   },
   ready (){
     console.log("ready start");

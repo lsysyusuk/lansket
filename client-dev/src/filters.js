@@ -1,7 +1,7 @@
 import { _ } from 'underscore/underscore-min';
 var holiday = ['2017-01-27','2017-01-28','2017-01-29','2017-01-30','2017-01-31','2017-02-01','2017-02-02','2017-04-02','2017-04-03','2017-04-04','2017-04-29','2017-04-30','2017-05-01'];
-var general = 200;
-var special = 300;
+var general = 220;
+var special = 270;
 
 exports.formateDateTime = function (date) {
 	if (date) {

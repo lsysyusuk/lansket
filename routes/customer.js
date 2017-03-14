@@ -294,7 +294,7 @@ var getClientIp = function (req) {
 
 var registerJob = function (code) {
   var date = new Date();
-  date = new Date(date.valueOf() + 1 * 60 * 1000);
+  date = new Date(date.valueOf() + config.wechat.expire * 60 * 1000);
   var j = schedule.scheduleJob(date, function(code){
     logger.writeInfo('excute—————————— ' + code);
 

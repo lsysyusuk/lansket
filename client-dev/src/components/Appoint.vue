@@ -19,7 +19,7 @@
     <cell :is-link="false"></cell>
     <x-button type='primary' style="position: fixed; bottom: 0; background-color:#f27330; opacity: 0.9; border-radius: 0;" @click='doAppoint'>我要预定</x-button>
     <div>
-      <confirm :show.sync="show" :cancel-text="'取消'" :confirm-text="'确认'" :title="'预约确认'" @on-confirm="doAppointConfirm" >
+      <confirm :show.sync="show" :cancel-text="'取消'" :confirm-text="'去支付'" :title="'预约确认'" @on-confirm="doAppointConfirm" >
         <div v-for='episode in appointText' style="text-align: center">
           {{episode.episode | episode}}
           <span v-for='court in episode.courtList' style="padding-left: 0.3rem"><font color="red">{{court}}</font>号场</span>

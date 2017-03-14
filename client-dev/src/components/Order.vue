@@ -26,6 +26,7 @@
         </div>
       </cell>
       </group>
+      <divider class="tips"><i class="fa-i fa fa-exclamation-circle main-color icon" aria-hidden="true"></i>支付后不可更改，如有任何疑问，请联系球场</divider>
       <group title='预定场次' class='ep-info'>
         <cell  v-for='ae in appoint.appointInfo' :title='ae.episode | episodeCourt ae.court' >
           <div slot='value'>
@@ -39,7 +40,7 @@
 </template>
 
 <script>
-import {XHeader, Group, Cell, ButtonTab, ButtonTabItem, XButton, Confirm, Scroller, XInput} from 'vux/src/components';
+import {XHeader, Group, Cell, ButtonTab, ButtonTabItem, XButton, Confirm, Scroller, XInput, Divider} from 'vux/src/components';
 import { _ } from 'underscore/underscore-min';
 export default {
   components: {
@@ -51,7 +52,8 @@ export default {
     XButton,
     Confirm,
     Scroller,
-    XInput
+    XInput,
+    Divider
   },
   data: function (){
     console.log("data start");
@@ -61,7 +63,9 @@ export default {
       // preserves its current state and we are modifying
       // its initial state.
       args: {},
-      appoint: {}
+      appoint: {},
+      expire: '',
+      lock: false
     }
     
   },
@@ -79,6 +83,7 @@ export default {
               // 进入订单系那详情画面
               console.log('success');
               that.appoint.isPay = true;
+              that.$root.$emit('doToast', "支付成功", "success")
             } else {
               console.log('fail')
             }
@@ -90,12 +95,19 @@ export default {
         console.log(res.data.payargs);
         that.args = res.data.payargs;
         that.appoint = res.data.appoint;
+        that.expire = res.data.expire;
         that.$root.loading = false;
       });
     }
   },
   methods: {
     doAppoint: function () {
+      if (lock) {
+        return ;
+      }
+      if (new Date() > new Date(this.expire)) {
+        return that.$root.$emit('doToast', "订单已过期,请返回并重新预定", "warn");
+      }
       console.log('pay');
       if (typeof WeixinJSBridge == "undefined") {
         if (document.addEventListener) {
@@ -135,5 +147,12 @@ export default {
 }
 .content.has-bottom {
   bottom: 3rem;
+}
+.tips {
+  font-size: 0.6rem;
+  color: red;
+}
+.vux-divider:after, .vux-divider:before {
+  background: none
 }
 </style>

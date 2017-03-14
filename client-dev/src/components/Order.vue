@@ -85,7 +85,9 @@ export default {
               that.appoint.isPay = true;
               that.$root.$emit('doToast', "支付成功", "success")
             } else {
-              console.log('fail')
+              console.log('fail');
+              that.$root.$emit('doToast', "支付失败,请返回并重新预定", "warn");
+              that.lock = false;
             }
           });
       }
@@ -102,13 +104,14 @@ export default {
   },
   methods: {
     doAppoint: function () {
-      if (lock) {
+      if (this.lock) {
         return ;
       }
+      this.lock = true;
+      console.log('pay');
       if (new Date() > new Date(this.expire)) {
         return that.$root.$emit('doToast', "订单已过期,请返回并重新预定", "warn");
       }
-      console.log('pay');
       if (typeof WeixinJSBridge == "undefined") {
         if (document.addEventListener) {
           document.addEventListener('WeixinJSBridgeReady', lantu.onBridgeReady, false);

@@ -104,6 +104,7 @@ router.get('/appointList4week.json', function(req, res, next) {
         }
       });
       _.mapObject(appointList4week, function(v,k) {
+        var isPay = false;
         var episode_court_map = _.map(episodeList, function (_episode) {
           return {"episode" : _episode, "courtList" : _.map(courtList, function (_court) {
             var s = {"court" : _court, "status": 0};
@@ -111,10 +112,16 @@ router.get('/appointList4week.json', function(req, res, next) {
             return s;
           })};
         })
-        episode_court_map_week[k] = episode_court_map;
+        isPay = _.some(v, function(_ap) {
+          if (_ap.customer._id.toString() == user._id.toString()) {
+            return _ap.isPay
+          }
+        })
+        episode_court_map_week[k] = {list: episode_court_map, isPay: isPay};
       });
 
-      res.send({"episode_court_map_week": episode_court_map_week, "appointList4week": appointList4week, isBindPhone:isBindPhone, isManager:isManager});
+
+      res.send({"episode_court_map_week": episode_court_map_week, isBindPhone:isBindPhone, isManager:isManager});
     }
   });
 });

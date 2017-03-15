@@ -10,14 +10,14 @@
         <div class="scroll-item next" @click="more_week('next')"></div>
       </div>
     </scroller>
-    <cell v-for="courtList in episode_court_map" :title="courtList.episode | episode" :is-link="false" >
+    <cell v-for="courtList in episode_court_map.list" :title="courtList.episode | episode" :is-link="false" >
       <button-tab class='court-list'>
          <button-tab-item v-for="(index, court) in courtList.courtList" class='court' :class="[treatDivide2(index) ?'court-l' : 'court-r', court.status == 2 ? 'disable' : '', court.status == 1 ? 'active' : '']"  @click='courtClick(court)' ><span>￥{{courtList.episode | getPrice current_date}}</span></button-tab-item>
       </button-tab>
     </cell>
     <cell :is-link="false" style='display: block; text-align: left'><span class='description avai'>&nbsp;&nbsp;&nbsp; </span><span style='color:#000'>可预订</span><span class='description choose'>&nbsp;&nbsp;&nbsp; </span><span style='color:#000'>选中</span><span class='description disable'>&nbsp;&nbsp;&nbsp; </span><span style='color:#000'>不可定</span></cell>
     <cell :is-link="false"></cell>
-    <x-button type='primary' :disabled='aleady_pay' style="position: fixed; bottom: 0; background-color: #f27330; opacity: 0.9; border-radius: 0;"  @click='doAppoint'>{{aleady_pay ? '已预约' : '我要预定'}}</x-button>
+    <x-button type='primary' :disabled='episode_court_map.isPay' style="position: fixed; bottom: 0; background-color: #f27330; opacity: 0.9; border-radius: 0;"  @click='doAppoint'>{{episode_court_map.isPay ? '已预约' : '我要预定'}}</x-button>
     <div>
       <confirm :show.sync="show" :cancel-text="'取消'" :confirm-text="'去支付'" :title="'预约确认'" @on-confirm="doAppointConfirm" >
         <div v-for='episode in appointText' style="text-align: center">
@@ -33,6 +33,7 @@
 <script>
 import {XHeader, Group, Cell, ButtonTab, ButtonTabItem, XButton, Confirm, Scroller, XInput} from 'vux/src/components';
 import MessageDialog from './message-dialog/messageDialog.vue'
+import constant from '../constant.js'
 import Vue from 'vue'
 import { _ } from 'underscore/underscore-min';
 export default {
@@ -60,14 +61,7 @@ export default {
     }
     
     return {
-      // note: changing this line won't causes changes
-      // with hot-reload because the reloaded component
-      // preserves its current state and we are modifying
-      // its initial state.
-      appointJson: [],
-      appointList4week: {},
       episode_court_map: [],
-      episode_court_map_default: JSON.parse('[{"episode":10,"courtList":[{"court":1,"status":0},{"court":2,"status":0},{"court":3,"status":0},{"court":4,"status":0}]},{"episode":12,"courtList":[{"court":1,"status":0},{"court":2,"status":0},{"court":3,"status":0},{"court":4,"status":0}]},{"episode":14,"courtList":[{"court":1,"status":0},{"court":2,"status":0},{"court":3,"status":0},{"court":4,"status":0}]},{"episode":16,"courtList":[{"court":1,"status":0},{"court":2,"status":0},{"court":3,"status":0},{"court":4,"status":0}]},{"episode":18,"courtList":[{"court":1,"status":0},{"court":2,"status":0},{"court":3,"status":0},{"court":4,"status":0}]},{"episode":20,"courtList":[{"court":1,"status":0},{"court":2,"status":0},{"court":3,"status":0},{"court":4,"status":0}]}]'),
       episode_court_map_week: {},
       weekList: weekList,
       current_date: weekList[2].date,
@@ -76,23 +70,9 @@ export default {
       appointInfo:[],
       phone_show:false,
       isBindPhone:false,
-      isManager:false,
-      aleady_pay: false
+      isManager:false
     }
     
-  },
-  watch: {
-    episode_court_map: function () {
-      if (_.some(this.episode_court_map, function (e) {
-        return _.some(e.courtList, function (ee) {
-          return ee.status == 1;
-        })
-      })) {
-        this.aleady_pay = true;
-      } else {
-        this.aleady_pay = false;
-      }
-    }
   },
   ready (){
     console.log("ready start");
@@ -100,12 +80,10 @@ export default {
     that.$root.loading = true;
     that.$http.get(this.$root.server + '/lantu/customer/appointList4week.json?start=' + that.weekList[0].date + '&end=' +  that.weekList[6].date).then(function (res) {
       that.episode_court_map_week = res.data.episode_court_map_week;
-      that.appointList4week = res.data.appointList4week;
       that.episode_court_map = res.data.episode_court_map_week[that.weekList[2].date];
       if (!that.episode_court_map) {
-        that.episode_court_map = JSON.parse('[{"episode":10,"courtList":[{"court":1,"status":0},{"court":2,"status":0},{"court":3,"status":0},{"court":4,"status":0}]},{"episode":12,"courtList":[{"court":1,"status":0},{"court":2,"status":0},{"court":3,"status":0},{"court":4,"status":0}]},{"episode":14,"courtList":[{"court":1,"status":0},{"court":2,"status":0},{"court":3,"status":0},{"court":4,"status":0}]},{"episode":16,"courtList":[{"court":1,"status":0},{"court":2,"status":0},{"court":3,"status":0},{"court":4,"status":0}]},{"episode":18,"courtList":[{"court":1,"status":0},{"court":2,"status":0},{"court":3,"status":0},{"court":4,"status":0}]},{"episode":20,"courtList":[{"court":1,"status":0},{"court":2,"status":0},{"court":3,"status":0},{"court":4,"status":0}]}]');
+        that.episode_court_map = {list: JSON.parse(constant.episode), isPay:false};
       }
-      that.appointJson = res.data.appointList4week[that.weekList[2].date];
       that.isBindPhone = res.data.isBindPhone
       that.isManager = res.data.isManager
       that.$root.loading = false;
@@ -113,7 +91,7 @@ export default {
   },
   methods: {
     courtClick: function (court) {
-      if (court.status == 2) {
+      if (court.status == 2 || this.episode_court_map.isPay) {
         return
       }
       court.status = (court.status + 1) % 2;
@@ -130,7 +108,7 @@ export default {
       }
       var appointInfo = [];
       var appointText = [];
-      _.each(this.episode_court_map, function (_episode) {
+      _.each(this.episode_court_map.list, function (_episode) {
         var _a = [];
         _.each(_episode.courtList, function (court) {
           if (court.status == 1) {
@@ -173,11 +151,10 @@ export default {
     },
     changeDay: function (date) {
       this.current_date = date;
-      this.episode_court_map = this.episode_court_map_week[date];
-      this.appointJson = this.appointList4week[date];
-      if (!this.episode_court_map) {
-        this.episode_court_map = JSON.parse('[{"episode":10,"courtList":[{"court":1,"status":0},{"court":2,"status":0},{"court":3,"status":0},{"court":4,"status":0}]},{"episode":12,"courtList":[{"court":1,"status":0},{"court":2,"status":0},{"court":3,"status":0},{"court":4,"status":0}]},{"episode":14,"courtList":[{"court":1,"status":0},{"court":2,"status":0},{"court":3,"status":0},{"court":4,"status":0}]},{"episode":16,"courtList":[{"court":1,"status":0},{"court":2,"status":0},{"court":3,"status":0},{"court":4,"status":0}]},{"episode":18,"courtList":[{"court":1,"status":0},{"court":2,"status":0},{"court":3,"status":0},{"court":4,"status":0}]},{"episode":20,"courtList":[{"court":1,"status":0},{"court":2,"status":0},{"court":3,"status":0},{"court":4,"status":0}]}]');
+      if (!this.episode_court_map_week[date]) {
+        this.episode_court_map_week[date] = {list: JSON.parse(constant.episode), isPay:false};
       }
+      this.episode_court_map = this.episode_court_map_week[date];
     },
     treatDate: function (date) {
       return date.substring(5);
@@ -251,7 +228,6 @@ export default {
       that.$root.loading = true;
       that.$http.get(this.$root.server + '/lantu/customer/appointList4week.json?start=' + _start + '&end=' +  _end).then(function (res) {
         that.episode_court_map_week = _.extend(that.episode_court_map_week,res.data.episode_court_map_week);
-        that.appointList4week = _.extend(that.appointList4week,res.data.appointList4week);
         that.$root.loading = false;
       });
     },

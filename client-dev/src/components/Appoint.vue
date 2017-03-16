@@ -244,12 +244,13 @@ export default {
       var weekList = [];
       while(weekList.length < 7) {
         if (weekList.length == 0) {
-          weekList.push(this.next_day())
+          weekList.push(that.next_day())
         } else {
-          weekList.push(this.next_day(weekList[weekList.length - 1].date, 'next'))
+          weekList.push(that.next_day(weekList[weekList.length - 1].date, 'next'))
         }
       }
-      this.weekList = weekList;
+      that.weekList = weekList;
+      that.current_date = that.weekList[2].date
       that.$http.get(this.$root.server + '/lantu/customer/appointList4week.json?start=' + that.weekList[0].date + '&end=' +  that.weekList[6].date).then(function (res) {
         that.episode_court_map_week = res.data.episode_court_map_week;
         that.episode_court_map = res.data.episode_court_map_week[that.weekList[2].date];

@@ -1,7 +1,7 @@
 <template>
   <div class="appoint page">
     <x-header :left-options="{showBack: false}" :right-options="{showMore: isManager}" @on-click-more="toManage" >篮&nbsp;&nbsp;途</x-header>
-    <scroller v-ref:refresh :use-pullup="false" :use-pulldown="true" :pullup-config="upConfig" :pulldown-config="upConfig"  lock-x :scrollbar-y="false"  @pulldown:loading='doPulldown()'>
+    <scroller v-ref:refresh :use-pullup="false" :use-pulldown="true" :pullup-config="upConfig" :pulldown-config="upConfig"  lock-x :scrollbar-y="false"  @pulldown:loading='doPulldown(true)'>
       <scroller v-ref:scroller  lock-y :scrollbar-x="false">
         <div id="scroll-content" v-el:scrollcontent :style="calculateWidth(weekList)">
           <div class="scroll-item last" @click="more_week('last')"></div>
@@ -79,18 +79,12 @@ export default {
   },
   ready (){
     console.log("ready start");
-    var that = this;
-    that.$root.loading = true;
-    that.$http.get(this.$root.server + '/lantu/customer/appointList4week.json?start=' + that.weekList[0].date + '&end=' +  that.weekList[6].date).then(function (res) {
-      that.episode_court_map_week = res.data.episode_court_map_week;
-      that.episode_court_map = res.data.episode_court_map_week[that.weekList[2].date];
-      if (!that.episode_court_map) {
-        that.episode_court_map = {list: JSON.parse(constant.episode), isPay:false};
-      }
-      that.isBindPhone = res.data.isBindPhone
-      that.isManager = res.data.isManager
-      that.$root.loading = false;
-    });
+  },
+  route: {
+    data (transition) {
+      console.log("route start");
+      this.doPulldown(false);
+    }
   },
   methods: {
     courtClick: function (court) {
@@ -153,7 +147,6 @@ export default {
       return "width:" + ((weekList.length) * 4.6 + 4.6 + 0.1) + "rem";
     },
     changeDay: function (date) {
-      console.log(this.$refs.refresh.pulldown)
       this.current_date = date;
       if (!this.episode_court_map_week[date]) {
         this.episode_court_map_week[date] = {list: JSON.parse(constant.episode), isPay:false};
@@ -238,31 +231,40 @@ export default {
     toManage: function () {
       this.$router.go('/manage')
     },
-    doPulldown: function () {
+    doPulldown: function (refresh) {
       var that = this;
       that.$root.loading = true;
-      var weekList = [];
-      while(weekList.length < 7) {
-        if (weekList.length == 0) {
-          weekList.push(that.next_day())
-        } else {
-          weekList.push(that.next_day(weekList[weekList.length - 1].date, 'next'))
+      if (refresh) {
+        var weekList = [];
+        while(weekList.length < 7) {
+          if (weekList.length == 0) {
+            weekList.push(that.next_day())
+          } else {
+            weekList.push(that.next_day(weekList[weekList.length - 1].date, 'next'))
+          }
         }
+        that.weekList = weekList;
       }
-      that.weekList = weekList;
-      that.current_date = that.weekList[2].date
       that.$http.get(this.$root.server + '/lantu/customer/appointList4week.json?start=' + that.weekList[0].date + '&end=' +  that.weekList[6].date).then(function (res) {
         that.episode_court_map_week = res.data.episode_court_map_week;
         that.episode_court_map = res.data.episode_court_map_week[that.weekList[2].date];
         if (!that.episode_court_map) {
           that.episode_court_map = {list: JSON.parse(constant.episode), isPay:false};
         }
-        that.$nextTick(() => {
-          that.$refs.refresh.reset()
-          that.$refs.scroller.reset()
-        });
-        that.$refs.refresh.pulldown.reset();
+        if (refresh) {
+          that.$nextTick(() => {
+            that.$refs.refresh.reset()
+            that.$refs.scroller.reset()
+          });
+          that.$refs.refresh.pulldown.reset();
+          that.current_date = that.weekList[2].date
+        } else {
+          that.isBindPhone = res.data.isBindPhone
+          that.isManager = res.data.isManager
+        }
+
         that.$root.loading = false;
+
       });
     }
   }

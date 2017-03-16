@@ -224,10 +224,7 @@ a {
   font-size: 1rem;
 }
 
-.weui_cells_title {
-  margin-top: 0.5rem !important;
-  height: 1rem !important;
-}
+
 .weui_dialog_bd {
   text-align: left !important
 }
@@ -236,6 +233,10 @@ a {
 }
 </style>
 <style>
+.weui_cells_title {
+  margin-top: 0.5rem !important;
+  height: 1rem !important;
+}
 .weui_dialog_bd {
   max-height: 15rem;
   overflow-y: scroll;

@@ -1,22 +1,24 @@
 <template>
   <div class="appoint page">
     <x-header :left-options="{showBack: false}" :right-options="{showMore: isManager}" @on-click-more="toManage" >篮&nbsp;&nbsp;途</x-header>
-    <scroller v-ref:scroller  lock-y :scrollbar-x="false">
-      <div id="scroll-content" v-el:scrollcontent :style="calculateWidth(weekList)">
-        <div class="scroll-item last" @click="more_week('last')"></div>
-        <div class="scroll-item" v-for="item in weekList" :class="[current_date == item.date ? 'active' : '']" @click="changeDay(item.date)" >
-          {{item.name}}<br><span>{{treatDate(item.date)}}</span>
+    <scroller v-ref:refresh :use-pullup="false" :use-pulldown="true" :pullup-config="upConfig" :pulldown-config="upConfig"  lock-x :scrollbar-y="false"  @pulldown:loading='doPulldown()'>
+      <scroller v-ref:scroller  lock-y :scrollbar-x="false">
+        <div id="scroll-content" v-el:scrollcontent :style="calculateWidth(weekList)">
+          <div class="scroll-item last" @click="more_week('last')"></div>
+          <div class="scroll-item" v-for="item in weekList" :class="[current_date == item.date ? 'active' : '']" @click="changeDay(item.date)" >
+            {{item.name}}<br><span>{{treatDate(item.date)}}</span>
+          </div>
+          <div class="scroll-item next" @click="more_week('next')"></div>
         </div>
-        <div class="scroll-item next" @click="more_week('next')"></div>
-      </div>
+      </scroller>
+      <cell v-for="courtList in episode_court_map.list" :title="courtList.episode | episode" :is-link="false" >
+        <button-tab class='court-list'>
+           <button-tab-item v-for="(index, court) in courtList.courtList" class='court' :class="[treatDivide2(index) ?'court-l' : 'court-r', court.status == 2 ? 'disable' : '', court.status == 1 ? 'active' : '']"  @click='courtClick(court)' ><span>￥{{courtList.episode | getPrice current_date}}</span></button-tab-item>
+        </button-tab>
+      </cell>
+      <cell :is-link="false" style='display: block; text-align: left'><span class='description avai'>&nbsp;&nbsp;&nbsp; </span><span style='color:#000'>可预订</span><span class='description choose'>&nbsp;&nbsp;&nbsp; </span><span style='color:#000'>选中</span><span class='description disable'>&nbsp;&nbsp;&nbsp; </span><span style='color:#000'>不可定</span></cell>
+      <cell :is-link="false"></cell>
     </scroller>
-    <cell v-for="courtList in episode_court_map.list" :title="courtList.episode | episode" :is-link="false" >
-      <button-tab class='court-list'>
-         <button-tab-item v-for="(index, court) in courtList.courtList" class='court' :class="[treatDivide2(index) ?'court-l' : 'court-r', court.status == 2 ? 'disable' : '', court.status == 1 ? 'active' : '']"  @click='courtClick(court)' ><span>￥{{courtList.episode | getPrice current_date}}</span></button-tab-item>
-      </button-tab>
-    </cell>
-    <cell :is-link="false" style='display: block; text-align: left'><span class='description avai'>&nbsp;&nbsp;&nbsp; </span><span style='color:#000'>可预订</span><span class='description choose'>&nbsp;&nbsp;&nbsp; </span><span style='color:#000'>选中</span><span class='description disable'>&nbsp;&nbsp;&nbsp; </span><span style='color:#000'>不可定</span></cell>
-    <cell :is-link="false"></cell>
     <x-button type='primary' :disabled='episode_court_map.isPay' style="position: fixed; bottom: 0; background-color: #f27330; opacity: 0.9; border-radius: 0;"  @click='doAppoint'>{{episode_court_map.isPay ? '已预约' : '我要预定'}}</x-button>
     <div>
       <confirm :show.sync="show" :cancel-text="'取消'" :confirm-text="'去支付'" :title="'预约确认'" @on-confirm="doAppointConfirm" >
@@ -70,7 +72,8 @@ export default {
       appointInfo:[],
       phone_show:false,
       isBindPhone:false,
-      isManager:false
+      isManager:false,
+      upConfig:{autoRefresh:false, upContent:' ', downContent:' ', content:' ', loadingContent:' ', height:50}
     }
     
   },
@@ -150,6 +153,7 @@ export default {
       return "width:" + ((weekList.length) * 4.6 + 4.6 + 0.1) + "rem";
     },
     changeDay: function (date) {
+      console.log(this.$refs.refresh.pulldown)
       this.current_date = date;
       if (!this.episode_court_map_week[date]) {
         this.episode_court_map_week[date] = {list: JSON.parse(constant.episode), isPay:false};
@@ -233,6 +237,32 @@ export default {
     },
     toManage: function () {
       this.$router.go('/manage')
+    },
+    doPulldown: function () {
+      var that = this;
+      that.$root.loading = true;
+      var weekList = [];
+      while(weekList.length < 7) {
+        if (weekList.length == 0) {
+          weekList.push(this.next_day())
+        } else {
+          weekList.push(this.next_day(weekList[weekList.length - 1].date, 'next'))
+        }
+      }
+      this.weekList = weekList;
+      that.$http.get(this.$root.server + '/lantu/customer/appointList4week.json?start=' + that.weekList[0].date + '&end=' +  that.weekList[6].date).then(function (res) {
+        that.episode_court_map_week = res.data.episode_court_map_week;
+        that.episode_court_map = res.data.episode_court_map_week[that.weekList[2].date];
+        if (!that.episode_court_map) {
+          that.episode_court_map = {list: JSON.parse(constant.episode), isPay:false};
+        }
+        that.$nextTick(() => {
+          that.$refs.refresh.reset()
+          that.$refs.scroller.reset()
+        });
+        that.$refs.refresh.pulldown.reset();
+        that.$root.loading = false;
+      });
     }
   }
 }

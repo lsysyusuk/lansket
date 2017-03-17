@@ -61,6 +61,7 @@ router.get('/appointList.json', function(req, res, next) {
 	appoint_model.find(q, function (error, docs){
   	if(error){
      		logger.writeErr("error: " + error);
+        return res.send({status: 0});
   	}else{
       var episode_court_map = _.map(episodeList, function (_episode) {
         return {"episode" : _episode, "courtList" : _.map(courtList, function (_court) {
@@ -72,7 +73,7 @@ router.get('/appointList.json', function(req, res, next) {
         })};
       })
 
-  		res.send({"episode_court_map": episode_court_map, "appointJson": docs});
+  		return res.send({"episode_court_map": episode_court_map, "appointJson": docs});
   	}
 	});
 });
@@ -93,6 +94,7 @@ router.get('/appointList4week.json', function(req, res, next) {
   appoint_model.find(q, function (error, docs){
     if(error){
         console.log("error: " + error);
+        return res.send({status: 0})
     }else{
       var episode_court_map_week = {};
       var appointList4week = {};
@@ -121,7 +123,7 @@ router.get('/appointList4week.json', function(req, res, next) {
       });
 
 
-      res.send({"episode_court_map_week": episode_court_map_week, isBindPhone:isBindPhone, isManager:isManager});
+      return res.send({"episode_court_map_week": episode_court_map_week, isBindPhone:isBindPhone, isManager:isManager});
     }
   });
 });
@@ -149,6 +151,7 @@ router.post('/doAppoint.json', function(req, res, next) {
   appoint_model.find(validateJson, function (error, docs) {
     if (error) {
       logger.writeErr(error);
+      return res.send({status: 0});
     } else {
       logger.writeInfo(docs);
       var validateResult = _.some(docs, function (n) {
@@ -168,6 +171,7 @@ router.post('/doAppoint.json', function(req, res, next) {
               updateAppoint.appointInfo = insertAppoint.appointInfo;
               updateAppoint.hour = insertAppoint.hour;
               updateAppoint.price = insertAppoint.price;
+              updateAppoint.code = insertAppoint.code;
               updateAppoint.save(function(err) {
                 if (err) {
                   return res.send({status:0});
@@ -199,10 +203,12 @@ router.get('/earnest/pay.json', function (req, res, next) {
   appoint_model.find({'code':code}, function (error, docs) {
     if (error) {
       logger.writeErr(error);
+      return res.send({status: 0});
     } else {
       logger.writeInfo(docs);
       if (docs.length != 1) {
         logger.writeErr("获取订单信息失败");
+        return res.send({status: 0});
       } else {
         var appoint = docs[0];
 
@@ -221,7 +227,7 @@ router.get('/earnest/pay.json', function (req, res, next) {
             // in express
             // res.render('wxpay/jsapi', { payargs:result })
             var expire = registerJob(code);
-            res.send({ payargs:result , appoint: appoint, expire: expire});
+            return res.send({status: 1, payargs:result , appoint: appoint, expire: expire});
           });
         } catch (err) {
           logger.writeErr(err)
@@ -252,11 +258,11 @@ router.use('/notify.json', wxPay.useWXCallback(function(msg, req, res, next){
                 appoint.isPay = true;
                 appoint.save(function(err) {
                   if (err) {
-                    res.fail();
+                    return res.fail();
                   }
                 })
               } else {
-                res.fail();
+                return res.fail();
               }
             }
           }
@@ -265,10 +271,10 @@ router.use('/notify.json', wxPay.useWXCallback(function(msg, req, res, next){
         logger.writeErr(msg.out_trade_no);
       }
     } catch (err) {
-      res.fail();
+      return res.fail();
     }
     
-    res.success();
+    return res.success();
   })
 );
 
@@ -309,21 +315,23 @@ var registerJob = function (code) {
       if (error) {
         logger.writeErr('注销订单失败,未找到该订单——————' + code);
       } else {
-        if (appoint.isPay) {
+        if (appoint && appoint.isPay) {
           logger.writeInfo('订单已支付，无需注销——————' + code);
         } else {
           wxPay.closeOrder({out_trade_no:code}, function(err, result){
             if (err) {
               logger.writeErr('注销订单失败，关闭微信订单失败——————' + code);
             } else {
-              appoint.valid = false;
-              appoint.save(function(err) {
-                if (err) {
-                  logger.writeErr('注销订单失败——————' + code);
-                } else {
-                  logger.writeInfo('注销订单成功——————' + code);
-                }
-              })
+              if (appoint) {
+                appoint.valid = false;
+                appoint.save(function(err) {
+                  if (err) {
+                    logger.writeErr('注销订单失败——————' + code);
+                  } else {
+                    logger.writeInfo('注销订单成功——————' + code);
+                  }
+                })
+              }
             }
           });
         }

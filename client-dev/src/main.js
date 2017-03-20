@@ -31,6 +31,8 @@ Vue.http.interceptors.push(function (request, next) {
 　　　　if (response.status == 408) {
         this.$root.loading = false;
         this.$root.$emit('doToast', '请求超时，请检查您的网络连接', 'warn')
+      } else {
+        clearTimeout(timeout)
       }
 　　　　return response;
     })

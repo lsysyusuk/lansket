@@ -1,5 +1,5 @@
 <template>
-  <div class="order page" style="background:#fff">
+  <div class="order page" style="background: #fff; padding-top:0px;">
     <div class='content' :class='[!appoint.isPay ? "has-bottom" : "", appoint.code ? "" : "hide"]'>
       <group title='订单信息'>
       <cell title=' 订单号' :value='appoint.code'>
@@ -145,7 +145,8 @@ export default {
   bottom: 0;
   left: 0;
   right: 0;
-  top: 3rem;
+  top: 0;
+  margin-top: 3rem;
   overflow: auto;
 }
 .content.has-bottom {

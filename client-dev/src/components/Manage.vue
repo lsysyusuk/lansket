@@ -1,6 +1,5 @@
 <template>
   <div class="page manage" style="background: #fff; width:100%">
-    <x-header :left-options="{showBack: true}">篮&nbsp;&nbsp;途</x-header>
     <div style="height:100%" :show="isManager">
        <tab :index.sync="index" v-ref:tab :line-width=2 active-color='#fc378c' style="height:2rem;">
         <tab-item  class="vux-center"  v-for="item in list">{{item}}</tab-item>
@@ -76,6 +75,11 @@ export default {
       upConfig:{autoRefresh:false, upContent:' ', downContent:' ', content:' ', loadingContent:' ', height:30},
       currentDate:{after:today, past:yesterday, today:today, yesterday:yesterday},
       editAppoint:{}
+    }
+  },
+  route: {
+    data (transition) {
+      this.$root.$emit('initMenu', {showBack: true, showMore:false, showMenu: false}, null, null);
     }
   },
   watch: {

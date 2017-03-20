@@ -1,6 +1,5 @@
 <template>
 	<div class="my page" style="background:#fff">
-		<x-header :left-options="{showBack: true}">我的订单</x-header>
 		<scroller v-ref:list :use-pullup="true" :use-pulldown="true" :pullup-config="upConfig" :pulldown-config="upConfig"  lock-x :scrollbar-y="false"  @pullup:loading='doPullup()' @pulldown:loading='doPulldown()'>
 	    <div :style="calculateHeight(appointList)" >
 	      <cell v-for="appoint in appointList" :title="appoint.appointDate"  v-link="{name: 'order', params:{code:appoint.code}}" is-link>
@@ -50,6 +49,7 @@ export default {
   route: {
   	data (transition) {
   		var that = this
+      this.$root.$emit('initMenu', {showBack: true, showMore:false, showMenu: false, title: '我的订单'}, null, null);
     	that.getAppointList(true);
   	}
   },

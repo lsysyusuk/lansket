@@ -1,7 +1,8 @@
 <template>
-  <div >
+  <div class='app-root'>
+    <x-header class='nav-btn top' :left-options="{showBack: showBack}" :right-options="{showMore: showMore}" @on-click-more="clickRight" >{{title}}<div v-if=showMenu slot='left'><i class='fa-i fa fa-user-circle' style='font-size: 1.3rem; margin-left: -0.3rem;' aria-hidden='true' @click='clickLeft'></i></div></x-header>
     <!-- <transition name="fade"> -->
-      <router-view @upup='doToast()' keep-alive transition transition-mode="out-in"></router-view>
+      <router-view v-if='show' @upup='doToast()' keep-alive transition transition-mode="out-in"></router-view>
     <!-- </transition> -->
       <toast :show.sync="toast.show" :text="toast.text" :type="toast.type"></toast>
       <loading :show.sync="loading" :text="'加载中'"></loading>
@@ -9,19 +10,31 @@
 </template>
 
 <script>
-import {Toast, Loading} from 'vux/src/components';
+import {Toast, Loading, XHeader} from 'vux/src/components';
 export default {
   components: {
     Toast,
-    Loading
+    Loading,
+    XHeader
   },
   data: function () {
     return {
       toast:{show:false, type:"success", text:""},
       loading:false,
       server: "",
+      show: false,
+      showBack: false,
+      showMore: false,
+      showMenu: false,
+      leftMenu: '',
+      title: '篮 途'
       // server: "http://127.0.0.1",
     }
+  },
+  created () {
+      setTimeout(() => {
+          this.show = true;
+      }, 0);
   },
   events: {
     doToast: function(text, type) {
@@ -31,6 +44,34 @@ export default {
       }
       this.toast.show = true;
     },
+    initMenu: function(option, clickLeft, clickRight) {
+      if (typeof option.showBack != 'undefined') {
+        this.showBack = option.showBack;
+      }
+      if (typeof option.showMore != 'undefined') {
+        this.showMore = option.showMore;
+      }
+      if (typeof option.showMenu != 'undefined') {
+        this.showMenu = option.showMenu;
+      }
+      if (typeof option.title != 'undefined') {
+        this.title = option.title;
+      }
+      if (typeof clickLeft == 'function') {
+        this.clickLeft = clickLeft;
+      }
+      if (typeof clickRight == 'function') {
+        this.clickRight = clickRight;
+      }
+    }
+  },
+  methods: {
+    clickRight: function() {
+
+    },
+    clickLeft: function() {
+
+    }
   }
 }
  
@@ -81,7 +122,8 @@ body {
   font-size: 16px;
   height: 100%;
   background: url(assets/flour.png);
-  overflow: hidden
+  overflow: hidden;
+  padding-top: 3.1rem
 }
 .v-transition {
   transition: all .3s ease;
@@ -128,7 +170,8 @@ body {
   height: 3rem;
   line-height: normal !important;
   vertical-align: middle !important;
-  width: 100%
+  width: 100%;
+  z-index: 100;
 }
 .nav-btn.bottom {
   bottom: 0; 
@@ -161,6 +204,9 @@ body {
 .icon_big.weui_icon_info:before {
   font-size: 5rem;
   color: #f27330;
+}
+.app-root .vux-header .vux-header-title, .vux-header h1 {
+
 }
 </style>
 

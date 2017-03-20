@@ -14,8 +14,27 @@ FastClick.attach(document.body)
 
 Vue.use(VueResource)
 Vue.use(VueRouter)
-
+Vue.http.options.timeout = 10000;
 Vue.http.options.emulateJSON = true;
+Vue.http.interceptors.push(function (request, next) {
+    let timeout;
+    if (request.timeout) {
+        timeout = setTimeout(function () {
+            next(request.respondWith(request.body, {
+                 status: 408,
+                 statusText: '请求超时'
+            }));
+            
+        }, request.timeout);
+    }
+    next(function (response) {
+　　　　if (response.status == 408) {
+        this.$root.loading = false;
+        this.$root.$emit('doToast', '请求超时，请检查您的网络连接', 'warn')
+      }
+　　　　return response;
+    })
+})
 
 const router = new VueRouter()
 

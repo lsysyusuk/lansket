@@ -1,6 +1,5 @@
 <template>
   <div class="order page" style="background:#fff">
-    <x-header class='nav-btn top' :left-options="{showBack: true}" :right-options="{showMore: isManager}" >订单详情</x-header>
     <div class='content' :class='[!appoint.isPay ? "has-bottom" : "", appoint.code ? "" : "hide"]'>
       <group title='订单信息'>
       <cell title=' 订单号' :value='appoint.code'>
@@ -75,6 +74,7 @@ export default {
   route: {
     data (transition) {
       console.log("route start");
+      this.$root.$emit('initMenu', {showBack: true, showMore:false, showMenu: false, title: '订单详情'}, null, null);
       window.lantu = {};
       var that = this;
       lantu.onBridgeReady = function() {

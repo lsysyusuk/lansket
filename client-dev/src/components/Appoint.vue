@@ -1,6 +1,5 @@
 <template>
   <div class="appoint page">
-    <x-header :left-options="{showBack: false}" :right-options="{showMore: isManager}" @on-click-more="toManage" >篮&nbsp;&nbsp;途<i slot='left' class="fa-i fa fa-user-circle" style='font-size: 1.3rem; margin-left: -0.3rem;' aria-hidden="true" @click='left = !left'></i></x-header>
     <scroller v-ref:refresh :use-pullup="false" :use-pulldown="true" :pullup-config="upConfig" :pulldown-config="upConfig"  lock-x :scrollbar-y="false"  @pulldown:loading='doPulldown(true)'>
       <scroller v-ref:scroller  lock-y :scrollbar-x="false">
         <div id="scroll-content" v-el:scrollcontent :style="calculateWidth(weekList)">
@@ -13,7 +12,7 @@
       </scroller>
       <cell v-for="courtList in episode_court_map.list" :title="courtList.episode | episode" :is-link="false" >
         <button-tab class='court-list'>
-           <button-tab-item v-for="(index, court) in courtList.courtList" class='court' :class="[treatDivide2(index) ?'court-l' : 'court-r', court.status == 2 ? 'disable' : '', court.status == 1 ? 'active' : '']"  @click='courtClick(court)' ><span>￥{{courtList.episode | getPrice current_date}}</span></button-tab-item>
+           <button-tab-item v-for="(index, court) in courtList.courtList" class='court' :class="[treatDivide2(index) ?'court-l' : 'court-r', court.status == 2 ? 'disable' : '', court.status == 1 ? 'active' : '']"  @click.stop.prevent='courtClick(court)' ><span>￥{{courtList.episode | getPrice current_date}}</span></button-tab-item>
         </button-tab>
       </cell>
       <cell :is-link="false" style='display: block; text-align: left'><span class='description avai'>&nbsp;&nbsp;&nbsp; </span><span style='color:#000'>可预订</span><span class='description choose'>&nbsp;&nbsp;&nbsp; </span><span style='color:#000'>选中</span><span class='description disable'>&nbsp;&nbsp;&nbsp; </span><span style='color:#000'>不可定</span></cell>
@@ -72,7 +71,6 @@ export default {
         weekList.push(this.next_day(weekList[weekList.length - 1].date, 'next'))
       }
     }
-    
     return {
       episode_court_map: [],
       episode_court_map_week: {},
@@ -96,6 +94,14 @@ export default {
   route: {
     data (transition) {
       console.log("route start");
+      var that = this
+      var toManage = function () {
+        this.$router.go('/manage');
+      }
+      var showSide = function () {
+        that.left = !that.left
+      };
+      this.$root.$emit('initMenu', {showBack: false, showMore:true, showMenu: true, title: '篮 途'}, showSide, toManage)
       this.doPulldown(false);
     }
   },

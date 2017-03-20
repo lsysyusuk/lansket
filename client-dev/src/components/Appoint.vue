@@ -1,6 +1,6 @@
 <template>
   <div class="appoint page">
-    <x-header :left-options="{showBack: false}" :right-options="{showMore: isManager}" @on-click-more="toManage" >篮&nbsp;&nbsp;途</x-header>
+    <x-header :left-options="{showBack: false}" :right-options="{showMore: isManager}" @on-click-more="toManage" >篮&nbsp;&nbsp;途<i slot='left' class="fa-i fa fa-user-circle" style='font-size: 1.3rem; margin-left: -0.3rem;' aria-hidden="true" @click='left = !left'></i></x-header>
     <scroller v-ref:refresh :use-pullup="false" :use-pulldown="true" :pullup-config="upConfig" :pulldown-config="upConfig"  lock-x :scrollbar-y="false"  @pulldown:loading='doPulldown(true)'>
       <scroller v-ref:scroller  lock-y :scrollbar-x="false">
         <div id="scroll-content" v-el:scrollcontent :style="calculateWidth(weekList)">
@@ -28,13 +28,22 @@
         </div>
       </confirm>
       <message-dialog :phone_show.sync='phone_show' @bind-success='doAppoint' ></message-dialog>
+      <side-bar :show.sync='left' width='45%' transition-type='vux-popup-left'>
+        <div>
+          <p class="center"><img :src="customer.avatarUrl"></p>
+          <cell :title='customer.nickname'><i slot="icon" width="20" class="fa-i fa fa-user-o  icon"  aria-hidden="true"></i></cell>
+          <cell  is-link @click='phone_show = !phone_show'><i slot="icon" width="20" class="fa-i fa fa-mobile-phone  icon"  aria-hidden="true"></i><div slot='after-title'>{{customer.phone}}</div></cell>
+          <cell  is-link><div slot='after-title' style="width:5rem"><i slot="icon" width="20" class="fa-i fa fa-list  icon"  aria-hidden="true"></i>我的订单</div></cell>
+        </div>
+      </side-bar>
     </div>
   </div>
 </template>
 
 <script>
-import {XHeader, Group, Cell, ButtonTab, ButtonTabItem, XButton, Confirm, Scroller, XInput} from 'vux/src/components';
-import MessageDialog from './message-dialog/messageDialog.vue'
+import {XHeader, Group, Cell, ButtonTab, ButtonTabItem, XButton, Confirm, Scroller, XInput, Blur} from 'vux/src/components';
+import MessageDialog from './message-dialog/MessageDialog.vue'
+import SideBar from './side-bar/SideBar.vue'
 import constant from '../constant.js'
 import Vue from 'vue'
 import { _ } from 'underscore/underscore-min';
@@ -49,7 +58,9 @@ export default {
     Confirm,
     Scroller,
     XInput,
-    MessageDialog
+    MessageDialog,
+    SideBar,
+    Blur
   },
   data: function (){
     console.log("data start");
@@ -73,7 +84,9 @@ export default {
       phone_show:false,
       isBindPhone:false,
       isManager:false,
-      upConfig:{autoRefresh:false, upContent:' ', downContent:' ', content:' ', loadingContent:' ', height:50}
+      upConfig:{autoRefresh:false, upContent:' ', downContent:' ', content:' ', loadingContent:' ', height:50},
+      left: false,
+      customer: {}
     }
     
   },
@@ -245,7 +258,10 @@ export default {
         }
         that.weekList = weekList;
       }
-      that.$http.get(this.$root.server + '/lantu/customer/appointList4week.json?start=' + that.weekList[0].date + '&end=' +  that.weekList[6].date).then(function (res) {
+      that.$http.get(this.$root.server + '/lantu/customer/appointList4week.json?ca='+ refresh +'&start=' + that.weekList[0].date + '&end=' +  that.weekList[6].date).then(function (res) {
+        if (res.data.customer) {
+          that.customer = res.data.customer
+        }
         that.episode_court_map_week = res.data.episode_court_map_week;
         that.episode_court_map = res.data.episode_court_map_week[that.weekList[2].date];
         if (!that.episode_court_map) {
@@ -380,7 +396,6 @@ export default {
   background: url(../assets/next-week.png) no-repeat center!important;
   background-size:100% 100% !important;
 }
-
 .description {
   margin: 0 0.3rem 0 2rem; 
 }
@@ -398,5 +413,19 @@ export default {
 }
 .weui_btn_disabled {
   background-color: #c1c1c1 !important;
+}
+.center {
+  text-align: center;
+  padding-top: 1rem;
+  color: #000;
+}
+.center img {
+  width: 5rem;
+  height: 5rem;
+  border-radius: 50%;
+  border: 4px solid #ececec;
+}
+.weui_cell_bd > p {
+  color: #fff !important;
 }
 </style>

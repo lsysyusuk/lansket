@@ -122,8 +122,12 @@ router.get('/appointList4week.json', function(req, res, next) {
         episode_court_map_week[k] = {list: episode_court_map, isPay: isPay};
       });
 
+      var result = {"episode_court_map_week": episode_court_map_week, "isBindPhone":isBindPhone, "isManager":isManager};
+      if (req.query.ca == 'false') {
+        result["customer"] = user;
+      }
 
-      return res.send({"episode_court_map_week": episode_court_map_week, isBindPhone:isBindPhone, isManager:isManager});
+      return res.send(result);
     }
   });
 });

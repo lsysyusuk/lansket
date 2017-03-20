@@ -3,6 +3,7 @@ import App from './App'
 import Appoint from './components/Appoint'
 import Manage from './components/Manage'
 import Order from './components/Order'
+import MyOrders from './components/MyOrders'
 import VueResource from 'vue-resource'
 import VueRouter from 'vue-router'
 import filters from './filters'
@@ -28,6 +29,9 @@ router.map({
   '/order/:code': {
   	name: 'order',
   	component: Order
+  },
+  '/my': {
+    component: MyOrders
   }
 })
 

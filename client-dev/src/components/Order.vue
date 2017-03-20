@@ -1,6 +1,6 @@
 <template>
   <div class="order page" style="background:#fff">
-    <x-header class='nav-btn top' :left-options="{showBack: true}" :right-options="{showMore: isManager}" >篮&nbsp;&nbsp;途</x-header>
+    <x-header class='nav-btn top' :left-options="{showBack: true}" :right-options="{showMore: isManager}" >订单详情</x-header>
     <div class='content' :class='[!appoint.isPay ? "has-bottom" : "", appoint.code ? "" : "hide"]'>
       <group title='订单信息'>
       <cell title=' 订单号' :value='appoint.code'>
@@ -35,7 +35,7 @@
         </cell>
       </group>
     </div>
-    <x-button :class='appoint.isPay ? "hide" : ""' type='primary' class='nav-btn bottom' @click='doAppoint'>微信支付</x-button>
+    <x-button :class='appoint.isPay || !appoint.valid ? "hide" : ""' type='primary' class='nav-btn bottom' @click='doAppoint'>微信支付</x-button>
   </div>
 </template>
 

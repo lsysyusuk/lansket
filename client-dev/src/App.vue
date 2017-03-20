@@ -158,5 +158,9 @@ body {
 .xs-plugin-pullup-undefined {
   display: none
 }
+.icon_big.weui_icon_info:before {
+  font-size: 5rem;
+  color: #f27330;
+}
 </style>
 

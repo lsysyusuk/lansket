@@ -197,28 +197,6 @@ a {
   color: #f27330;
 }
 
-.xs-plugin-pulldown-container:after {
-    content: '';
-    display: block;
-    width: 2rem;
-    height:1.2rem;
-    margin-left: -1rem;
-    position: absolute;
-    left: 50%;
-    bottom: 0.5rem;
-    background: url("data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2026%2040'%3E%3Cpolygon%20points%3D'9%2C22%209%2C0%2017%2C0%2017%2C22%2026%2C22%2013.5%2C40%200%2C22'%20fill%3D'%238c8c8c'%2F%3E%3C%2Fsvg%3E")  no-repeat center;
-}
-.xs-plugin-pulldown-up:after {
-  transform: rotate(180deg);
-  -webkit-transform: rotate(180deg); 
-}
-.xs-plugin-pullup-undefined {
-  display: none
-}
-.icon_big.weui_icon_info:before {
-  font-size: 5rem;
-  color: #f27330;
-}
 .fa-i {
   margin-right: 0.2rem;
   font-size: 1rem;

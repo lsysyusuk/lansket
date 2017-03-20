@@ -33,7 +33,7 @@
           <p class="center"><img :src="customer.avatarUrl"></p>
           <cell :title='customer.nickname'><i slot="icon" width="20" class="fa-i fa fa-user-o  icon"  aria-hidden="true"></i></cell>
           <cell  is-link @click='phone_show = !phone_show'><i slot="icon" width="20" class="fa-i fa fa-mobile-phone  icon"  aria-hidden="true"></i><div slot='after-title'>{{customer.phone}}</div></cell>
-          <cell  is-link><div slot='after-title' style="width:5rem"><i slot="icon" width="20" class="fa-i fa fa-list  icon"  aria-hidden="true"></i>我的订单</div></cell>
+          <cell  is-link @click='toMy'><div slot='after-title' style="width:5rem"><i slot="icon" width="20" class="fa-i fa fa-list  icon"  aria-hidden="true"></i>我的订单</div></cell>
         </div>
       </side-bar>
     </div>
@@ -243,6 +243,10 @@ export default {
     },
     toManage: function () {
       this.$router.go('/manage')
+    },
+    toMy: function () {
+      this.left = false;
+      this.$router.go('/my')
     },
     doPulldown: function (refresh) {
       var that = this;

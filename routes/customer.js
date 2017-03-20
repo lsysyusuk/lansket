@@ -282,6 +282,23 @@ router.use('/notify.json', wxPay.useWXCallback(function(msg, req, res, next){
   })
 );
 
+router.get('/my/orders.json', function (req, res, next) {
+  var user = req.session.user;
+  var page = req.query.page;
+  var size = req.query.size;
+  var count = 0;
+  appoint_model.find().where('customer._id').equals(user._id).limit(size).skip(page * size).sort({'createTime':'desc'}).exec(function(err, docs) {
+    if (err) {
+      logger.writeErr('获取个人订单失败');
+      return {status:0}
+    } else {
+      appoint_model.count({'customer._id':user._id}, function (err, count) {
+        return res.send({status: 1, count: count, list: docs})
+      })
+    }
+  })
+});
+
 var validateAppoint = function (userId, appointDate, appointInfo) {
   var validateJson = {appointInfo:{$elemMatch:{$or:[]}}};
   validateJson.appointInfo.$elemMatch.$or = appointInfo;

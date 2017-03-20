@@ -77,7 +77,7 @@ body {
   top: 0;
   right: 0;
   bottom: 0;
-  width: 100%;
+  /*width: 100%;*/
   font-size: 16px;
   height: 100%;
   background: url(assets/flour.png);
@@ -91,15 +91,15 @@ body {
 }
 /* .expand-enter 定义进入的开始状态 */
 .v-enter {
-  height: 0;
+  /*height: 0;*/
   padding: 0 80%;
-  opacity: 0;
+  /*opacity: 0;*/
 }
 /* .expand-leave 定义离开的结束状态 */
 .v-leave {
-  height: 0;
+  /*height: 0;*/
   padding: 0 80%;
-  opacity: 0;
+  /*opacity: 0;*/
 }
 .main-color {
   color: #f27330;

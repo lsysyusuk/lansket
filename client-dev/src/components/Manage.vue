@@ -1,5 +1,5 @@
 <template>
-  <div class="page manage" style="background:#fff">
+  <div class="page manage" style="background: #fff; width:100%">
     <x-header :left-options="{showBack: true}">篮&nbsp;&nbsp;途</x-header>
     <div style="height:100%" :show="isManager">
        <tab :index.sync="index" v-ref:tab :line-width=2 active-color='#fc378c' style="height:2rem;">

@@ -44,12 +44,13 @@ export default {
       upConfig:{autoRefresh:false, upContent:' ', downContent:' ', content:' ', loadingContent:' ', height:30}
   	}
   },
+  ready () {
+    this.resetScroll('down');
+  },
   route: {
   	data (transition) {
   		var that = this
-    	that.getAppointList(true, function () {
-    		that.resetScroll('down')
-    	});
+    	that.getAppointList(true);
   	}
   },
   methods: {

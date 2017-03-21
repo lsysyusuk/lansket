@@ -6,6 +6,7 @@
     <!-- </transition> -->
       <toast :show.sync="toast.show" :text="toast.text" :type="toast.type"></toast>
       <loading :show.sync="loading" :text="'加载中'"></loading>
+      <a v-if='showBack' @click='back' class="bottom-back"><i class='fa-i fa fa-chevron-left' aria-hidden='true'></i></a>
   </div>
 </template>
 
@@ -71,6 +72,9 @@ export default {
     },
     clickLeft: function() {
 
+    },
+    back: function () {
+      history.back()
     }
   }
 }
@@ -205,8 +209,28 @@ body {
   font-size: 5rem;
   color: #f27330;
 }
-.app-root .vux-header .vux-header-title, .vux-header h1 {
-
+.bottom-back {
+  position: absolute;
+  right: 0;
+  bottom: 4rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  background-color: #f27330;
+  text-align: center;
+  border-radius: 2rem;
+  opacity: 0.9;
+}
+.bottom-back i {
+  font-size: 1.3rem; 
+  margin-left: -0.3rem; 
+  color: #fff;
+  line-height: 2.5rem
+}
+.vux-header .vux-header-left .vux-header-back {
+  /*width: 2rem;*/
+  /*height: 2rem;*/
+  /*margin-left: -.5rem;*/
+  /*margin-top: -.5rem;*/
 }
 </style>
 

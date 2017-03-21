@@ -1,13 +1,13 @@
 <template>
-  <div class="appoint page">
+  <div class="appoint page" style='width:100%'>
     <scroller v-ref:refresh :use-pullup="false" :use-pulldown="true" :pullup-config="upConfig" :pulldown-config="upConfig"  lock-x :scrollbar-y="false"  @pulldown:loading='doPulldown(true)'>
-      <scroller v-ref:scroller  lock-y :scrollbar-x="false">
+      <scroller v-ref:scroller  lock-y :scrollbar-x="false" >
         <div id="scroll-content" v-el:scrollcontent :style="calculateWidth(weekList)">
-          <div class="scroll-item last" @click="more_week('last')"></div>
+          <div class="scroll-item last" @click="more_week('last', $event)"></div>
           <div class="scroll-item" v-for="item in weekList" :class="[current_date == item.date ? 'active' : '']" @click="changeDay(item.date)" >
             {{item.name}}<br><span>{{treatDate(item.date)}}</span>
           </div>
-          <div class="scroll-item next" @click="more_week('next')"></div>
+          <div class="scroll-item next" @click="more_week('next', $event)"></div>
         </div>
       </scroller>
       <cell v-for="courtList in episode_court_map.list" :title="courtList.episode | episode" :is-link="false" >
@@ -63,19 +63,11 @@ export default {
   },
   data: function (){
     console.log("data start");
-    var weekList = [];
-    while(weekList.length < 7) {
-      if (weekList.length == 0) {
-        weekList.push(this.next_day())
-      } else {
-        weekList.push(this.next_day(weekList[weekList.length - 1].date, 'next'))
-      }
-    }
     return {
       episode_court_map: [],
       episode_court_map_week: {},
-      weekList: weekList,
-      current_date: weekList[2].date,
+      weekList: [],
+      current_date: '',
       show: false,
       appointText:[],
       appointInfo:[],
@@ -84,12 +76,14 @@ export default {
       isManager:false,
       upConfig:{autoRefresh:false, upContent:' ', downContent:' ', content:' ', loadingContent:' ', height:50},
       left: false,
-      customer: {}
+      customer: {},
+      clickTime: 0
     }
     
   },
   ready (){
     console.log("ready start");
+    // this.doPulldown(true);
   },
   route: {
     data (transition) {
@@ -201,7 +195,11 @@ export default {
         var s = d.getFullYear()+"-"+month+"-"+day;
         return {'name': week_map[d.getDay()], 'date': s};
     },
-    more_week: function (ctrl) {
+    more_week: function (ctrl, event) {
+      if (event.timeStamp - this.clickTime <= 1000) {
+        return;
+      }
+      this.clickTime = event.timeStamp;
       var count = 7;
       var i = 0;
       var d;
@@ -257,7 +255,7 @@ export default {
     doPulldown: function (refresh) {
       var that = this;
       that.$root.loading = true;
-      if (refresh) {
+      if (refresh || this.weekList.length <= 0) {
         var weekList = [];
         while(weekList.length < 7) {
           if (weekList.length == 0) {
@@ -267,28 +265,28 @@ export default {
           }
         }
         that.weekList = weekList;
+        that.current_date = that.weekList[2].date;
+        that.$nextTick(() => {
+          that.$refs.scroller.reset()
+        });
       }
       that.$http.get(this.$root.server + '/lantu/customer/appointList4week.json?ca='+ refresh +'&start=' + that.weekList[0].date + '&end=' +  that.weekList[6].date).then(function (res) {
         if (res.data.customer) {
           that.customer = res.data.customer
+        }
+        if (!refresh) {
+          that.isBindPhone = res.data.isBindPhone
+          that.isManager = res.data.isManager
         }
         that.episode_court_map_week = res.data.episode_court_map_week;
         that.episode_court_map = res.data.episode_court_map_week[that.weekList[2].date];
         if (!that.episode_court_map) {
           that.episode_court_map = {list: JSON.parse(constant.episode), isPay:false};
         }
-        if (refresh) {
-          that.$nextTick(() => {
-            that.$refs.refresh.reset()
-            that.$refs.scroller.reset()
-          });
+        if (that.$refs.refresh.pulldown) {
+          that.$refs.refresh.reset()
           that.$refs.refresh.pulldown.reset();
-          that.current_date = that.weekList[2].date
-        } else {
-          that.isBindPhone = res.data.isBindPhone
-          that.isManager = res.data.isManager
         }
-
         that.$root.loading = false;
 
       });

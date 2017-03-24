@@ -91,45 +91,46 @@ router.get('/appointList4week.json', function(req, res, next) {
   var start = req.query.start;
   var end = req.query.end;
   var q = {appointDate:{$lte: end, $gte:start},valid:true};
-  appoint_model.find(q, function (error, docs){
-    if(error){
-        console.log("error: " + error);
-        return res.send({status: 0})
-    }else{
-      var episode_court_map_week = {};
-      var appointList4week = {};
-      _.each(docs, function(e) {
-        if (appointList4week[e.appointDate]) {
-          appointList4week[e.appointDate].push(e);
-        } else {
-          appointList4week[e.appointDate] = [e];
-        }
-      });
-      _.mapObject(appointList4week, function(v,k) {
-        var isPay = false;
-        var episode_court_map = _.map(episodeList, function (_episode) {
-          return {"episode" : _episode, "courtList" : _.map(courtList, function (_court) {
-            var s = {"court" : _court, "status": 0};
-            s.status = findDisable(_episode, _court, v, user._id);
-            return s;
-          })};
-        })
-        isPay = _.some(v, function(_ap) {
-          if (_ap.customer._id.toString() == user._id.toString()) {
-            return _ap.isPay
-          }
-        })
-        episode_court_map_week[k] = {list: episode_court_map, isPay: isPay};
-      });
-
-      var result = {"episode_court_map_week": episode_court_map_week, "isBindPhone":isBindPhone, "isManager":isManager};
-      if (req.query.ca == 'false') {
-        result["customer"] = user;
+  appoint_model.find(q)
+  .then(function (docs){
+    var episode_court_map_week = {};
+    var appointList4week = {};
+    _.each(docs, function(e) {
+      if (appointList4week[e.appointDate]) {
+        appointList4week[e.appointDate].push(e);
+      } else {
+        appointList4week[e.appointDate] = [e];
       }
+    });
+    _.mapObject(appointList4week, function(v,k) {
+      var isPay = false;
+      var episode_court_map = _.map(episodeList, function (_episode) {
+        return {"episode" : _episode, "courtList" : _.map(courtList, function (_court) {
+          var s = {"court" : _court, "status": 0};
+          s.status = findDisable(_episode, _court, v, user._id);
+          return s;
+        })};
+      })
+      isPay = _.some(v, function(_ap) {
+        if (_ap.customer._id.toString() == user._id.toString()) {
+          return _ap.isPay
+        }
+      })
+      episode_court_map_week[k] = {list: episode_court_map, isPay: isPay};
+    });
 
-      return res.send(result);
+    var result = {"episode_court_map_week": episode_court_map_week, "isBindPhone":isBindPhone, "isManager":isManager};
+    if (req.query.ca == 'false') {
+      result["customer"] = user;
     }
-  });
+
+    res.send(result);
+  })
+  .then(function (error) {
+    if (error) {
+      res.send({status: 0}) 
+    }
+  })
 });
 
 router.post('/doAppoint.json', function(req, res, next) {

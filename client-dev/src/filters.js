@@ -31,7 +31,7 @@ exports.episodeCourt = function (num, court) {
 
 exports.getPrice = function (episode, date) {
 	var week = new Date(date).getDay();
-	if (parseInt(episode) > 18 || week == 0 || week == 6 || _.some(holiday, function(n){return date == n})) {
+	if (parseInt(episode) >= 18 || week == 0 || week == 6 || _.some(holiday, function(n){return date == n})) {
 		return special;
 	} else {
 		return general;

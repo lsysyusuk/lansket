@@ -16,6 +16,8 @@ var config = require('./config');
 
 var hbs = require('hbs');
 var mongoose = require("mongoose");
+var bluebird = require('bluebird');
+
 
 
 var app = express();
@@ -38,7 +40,7 @@ app.use(express.static(path.join(__dirname, 'dist')));
 
 // mongo start
 
-mongoose.Promise = global.Promise;
+mongoose.Promise=bluebird;
 
 mongoose.connect('mongodb://'+ config.db.username +':'+ config.db.password +'@'+ config.db.host +':'+ config.db.port +'/'+ config.db.database);
 
